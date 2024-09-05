@@ -4,6 +4,11 @@ from typing import List, Tuple
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 
+from torch import embedding
+from torchtext.vocab import FastText
+
+### tokenization ###
+
 nltk.download("punkt")
 nltk.download("punkt_tab")
 
@@ -38,3 +43,30 @@ def split_corpus(
         corpus[train_size : train_size + test_size],
         corpus[train_size + test_size :],
     )
+
+
+### embedding ###
+
+fast_text = FastText(language="en")
+
+
+def build_vocab(tokenized_corpus: List[List[str]]) -> List[str]:
+    return list(set(word for sentence in tokenized_corpus for word in sentence))
+
+
+# todo: parallelise this (note: do we have to maintain order? if so, use indices in the func)
+def get_embeddings(
+    tokenized_corpus: List[List[str]], vocab: List[str]
+) -> List[List[float]]:
+    embeddings = []
+
+    for sentence in tokenized_corpus:
+        sentence_embeddings = []
+
+        for word in sentence:
+            sentence_embeddings.append(
+                fast_text[word if word in vocab else "<UNK>"].numpy()
+            )
+        embeddings.append(sentence_embeddings)
+
+    return embeddings
