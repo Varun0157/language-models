@@ -5,6 +5,7 @@ import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 
 nltk.download("punkt")
+nltk.download("punkt_tab")
 
 
 def _tokenize(text: str) -> List[List[str]]:
@@ -22,9 +23,8 @@ def split_corpus(
     corpus: List[List[str]],
     train_ratio: float = 0.7,
     test_ratio: float = 0.2,
-    val_ratio: float = 0.1,
 ) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
-    assert train_ratio + test_ratio + val_ratio == 1
+    assert train_ratio + test_ratio < 1, "leave space for validation"
 
     random.shuffle(corpus)
 

@@ -1,0 +1,3 @@
+- move data.py out, make it accessible to all the models 
+- experiment with GLoVe models with larger token sizes. 
+- 
