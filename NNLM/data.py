@@ -20,7 +20,7 @@ nltk.download("punkt_tab")
 # todo: consider going across sentences
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
-    sentences = sentences[:1_000] # a smaller corpus for testing
+    sentences = sentences[:1_000]  # a smaller corpus for testing
     tokenized_sentences = [word_tokenize(sentence) for sentence in sentences]
 
     tokenized_corpus = []
@@ -79,11 +79,10 @@ def _process_sentence(
 
 
 # todo: can probably maintain order despite multiprocessing by storing in indices
-# todo: do not make a const at 14, do num proc - 2 or something
 def get_embeddings(
     tokenized_corpus: List[List[str]], vocab: List[str]
 ) -> Tuple[List[List[str]], List[List[np.ndarray]]]:
-    with multiprocessing.Pool(14) as pool:
+    with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
         results = pool.map(partial(_process_sentence, vocab=vocab), tokenized_corpus)
 
     tokenized_corpus, embeddings = zip(*results)
