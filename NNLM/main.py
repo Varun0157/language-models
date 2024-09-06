@@ -14,7 +14,7 @@ def main() -> None:
     print(f"Vali set size: {len(val_set)}")
 
     vocab = build_vocab(train_set)
-    trai_embed, train_set = get_embeddings(train_set, vocab)
+    train_set, trai_embed = get_embeddings(train_set, vocab)
 
     print(f"vocab size: {len(vocab)}")
     print(f"embeddings size: {len(trai_embed)}")

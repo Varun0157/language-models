@@ -1,6 +1,6 @@
 import random
 from typing import List, Tuple
-# import multiprocessing
+import multiprocessing
 from functools import partial
 
 import numpy as np
@@ -20,8 +20,7 @@ nltk.download("punkt_tab")
 # todo: consider going across sentences
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
-    # sentences = sentences[:1000] # using a smaller corpus for now 
-
+    sentences = sentences[:1_000] # a smaller corpus for testing
     tokenized_sentences = [word_tokenize(sentence) for sentence in sentences]
 
     tokenized_corpus = []
@@ -68,9 +67,9 @@ def build_vocab(tokenized_corpus: List[List[str]]) -> List[str]:
     return list(set(word for sentence in tokenized_corpus for word in sentence))
 
 
-import concurrent.futures
-
-def _process_sentence(sentence: List[str], vocab: List[str]) -> Tuple[List[str], List[np.ndarray]]:
+def _process_sentence(
+    sentence: List[str], vocab: List[str]
+) -> Tuple[List[str], List[np.ndarray]]:
     sentence_embeddings = []
     for word in sentence:
         sentence_embeddings.append(
@@ -79,11 +78,13 @@ def _process_sentence(sentence: List[str], vocab: List[str]) -> Tuple[List[str],
     return sentence, sentence_embeddings
 
 
+# todo: can probably maintain order despite multiprocessing by storing in indices
+# todo: do not make a const at 14, do num proc - 2 or something
 def get_embeddings(
     tokenized_corpus: List[List[str]], vocab: List[str]
 ) -> Tuple[List[List[str]], List[List[np.ndarray]]]:
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        results = executor.map(partial(_process_sentence, vocab=vocab), tokenized_corpus)
+    with multiprocessing.Pool(14) as pool:
+        results = pool.map(partial(_process_sentence, vocab=vocab), tokenized_corpus)
 
-    sentences, embeddings = zip(*results)
-    return list(sentences), list(embeddings)
+    tokenized_corpus, embeddings = zip(*results)
+    return tokenized_corpus, embeddings
