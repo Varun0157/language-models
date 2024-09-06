@@ -1,5 +1,9 @@
 import random
 from typing import List, Tuple
+# import multiprocessing
+from functools import partial
+
+import numpy as np
 
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -13,9 +17,19 @@ nltk.download("punkt")
 nltk.download("punkt_tab")
 
 
+# todo: consider going across sentences
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
-    return [word_tokenize(sentence) for sentence in sentences]
+    # sentences = sentences[:1000] # using a smaller corpus for now 
+
+    tokenized_sentences = [word_tokenize(sentence) for sentence in sentences]
+
+    tokenized_corpus = []
+    for sentence in tokenized_sentences:
+        for i in range(len(sentence) - 5):
+            tokenized_corpus.append(sentence[i : i + 6])
+
+    return tokenized_corpus
 
 
 def get_corpus(file_path: str) -> List[List[str]]:
@@ -54,19 +68,22 @@ def build_vocab(tokenized_corpus: List[List[str]]) -> List[str]:
     return list(set(word for sentence in tokenized_corpus for word in sentence))
 
 
-# todo: parallelise this (note: do we have to maintain order? if so, use indices in the func)
+import concurrent.futures
+
+def _process_sentence(sentence: List[str], vocab: List[str]) -> Tuple[List[str], List[np.ndarray]]:
+    sentence_embeddings = []
+    for word in sentence:
+        sentence_embeddings.append(
+            fast_text[word if word in vocab else "<UNK>"].numpy()
+        )
+    return sentence, sentence_embeddings
+
+
 def get_embeddings(
     tokenized_corpus: List[List[str]], vocab: List[str]
-) -> List[List[float]]:
-    embeddings = []
+) -> Tuple[List[List[str]], List[List[np.ndarray]]]:
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = executor.map(partial(_process_sentence, vocab=vocab), tokenized_corpus)
 
-    for sentence in tokenized_corpus:
-        sentence_embeddings = []
-
-        for word in sentence:
-            sentence_embeddings.append(
-                fast_text[word if word in vocab else "<UNK>"].numpy()
-            )
-        embeddings.append(sentence_embeddings)
-
-    return embeddings
+    sentences, embeddings = zip(*results)
+    return list(sentences), list(embeddings)
