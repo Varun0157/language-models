@@ -42,14 +42,12 @@ def split_corpus(
     train_ratio: float = 0.7,
     test_ratio: float = 0.2,
 ) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
-    assert train_ratio + test_ratio < 1, "leave space for validation"
-
     random.shuffle(corpus)
 
     train_size, test_size = (
         int(len(corpus) * ratio) for ratio in [train_ratio, test_ratio]
     )
-    # val_size = len(corpus) - train_size - test_size
+    assert train_size + test_size < len(corpus), "leave space for validation"
 
     return (
         corpus[:train_size],
@@ -79,6 +77,7 @@ def _process_sentence(
 
 
 # todo: can probably maintain order despite multiprocessing by storing in indices
+# todo: should you use threads instead?
 def get_embeddings(
     tokenized_corpus: List[List[str]], vocab: List[str]
 ) -> Tuple[List[List[str]], List[List[np.ndarray]]]:
