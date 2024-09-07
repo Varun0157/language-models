@@ -30,7 +30,7 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
 def train(
     model: torch.nn.Module,
     train_loader: torch.utils.data.DataLoader,
-    optimizer: torch.optim.optimizer.Optimizer,
+    optimizer: torch.optim.Optimizer,  # type: ignore
     criterion: torch.nn.Module,
     device: torch.device,
 ) -> float:
@@ -93,7 +93,14 @@ def calculate_perplexity(
     return sentence_perplexities
 
 
-def save_perplexities(perplexities, sentences, filename):
+def save_perplexities(
+    perplexities: List[float], test_dataset: List[List[str]], filename: str
+) -> None:
+    # get the sentences from the test_loader
+    sentences = []
+    for sentence_data in test_dataset:
+        sentences.append(" ".join(sentence_data))
+
     with open(filename, "w") as f:
         for sentence, perplexity in zip(sentences, perplexities):
             f.write(f"{' '.join(sentence)}\t{perplexity}\n")

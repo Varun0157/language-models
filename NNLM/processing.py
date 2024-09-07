@@ -24,7 +24,7 @@ nltk.download("punkt_tab")
 # todo: consider going across sentences
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
-    sentences = sentences[:1_000]  # a smaller corpus for testing
+    sentences = sentences[:30_000]  # a smaller corpus for testing
     tokenized_sentences = [word_tokenize(sentence) for sentence in sentences]
 
     tokenized_corpus = []
@@ -112,7 +112,7 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
     embeddings = torch.zeros(len(vocab), emb_dim)
 
     for idx, word in enumerate(vocab):
-        embeddings[idx] = torch.tensor(fast_text[word])
+        embeddings[idx] = torch.from_numpy(fast_text[word].numpy())
 
     return embeddings
 
