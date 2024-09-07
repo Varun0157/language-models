@@ -1,5 +1,5 @@
 import random
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import multiprocessing
 from functools import partial
 
@@ -8,8 +8,12 @@ import numpy as np
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 
-from torch import embedding
+import torch
+from torch.utils.data import Dataset
+
 from torchtext.vocab import FastText
+
+UNKNOWN: str = "<UNK>"
 
 ### tokenization ###
 
@@ -34,6 +38,7 @@ def _tokenize(text: str) -> List[List[str]]:
 def get_corpus(file_path: str) -> List[List[str]]:
     with open(file_path, "r") as f:
         text = f.read()
+    # todo: clean the data -> remove chapter titles, unnecessary numbers if any.
     return _tokenize(text)
 
 
@@ -56,33 +61,71 @@ def split_corpus(
     )
 
 
-### embedding ###
+### dataset ###
+class ModelDataset(Dataset):
+    def __init__(
+        self,
+        corpus: List[List[str]],
+        vocab: List[str],
+        embeddings: torch.Tensor,
+    ):
+        self.corpus: List[List[str]] = corpus
+        self.vocab: Dict[str, int] = {word: idx for idx, word in enumerate(vocab)}
+        self.embeddings: torch.Tensor = embeddings
 
-fast_text = FastText(language="en")
+    def __len__(self) -> int:
+        return len(self.corpus)
+
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, int]:
+        sentence = self.corpus[idx]
+
+        input_data = sentence[:5]
+
+        context_indices = [
+            self.vocab.get(word, self.vocab[UNKNOWN]) for word in input_data
+        ]
+        context = torch.stack([self.embeddings[idx] for idx in context_indices])
+
+        target = sentence[5]
+        target_index = self.vocab.get(target, self.vocab[UNKNOWN])
+
+        return context, target_index
+
+
+### embedding ###
 
 
 def build_vocab(tokenized_corpus: List[List[str]]) -> List[str]:
-    return list(set(word for sentence in tokenized_corpus for word in sentence))
+    return [UNKNOWN] + list(
+        set(word for sentence in tokenized_corpus for word in sentence)
+    )
 
 
-def _process_sentence(
-    sentence: List[str], vocab: List[str]
-) -> Tuple[List[str], List[np.ndarray]]:
-    sentence_embeddings = []
-    for word in sentence:
-        sentence_embeddings.append(
-            fast_text[word if word in vocab else "<UNK>"].numpy()
-        )
-    return sentence, sentence_embeddings
+def get_embeddings(vocab: List[str]) -> torch.Tensor:
+    assert len(vocab) > 0, "vocab should not be empty"
+
+    fast_text = FastText(language="en")
+
+    emb_dim: int = (
+        fast_text.dim if type(fast_text.dim) == int else len(fast_text[vocab[0]])
+    )
+    embeddings = torch.zeros(len(vocab), emb_dim)
+
+    for idx, word in enumerate(vocab):
+        embeddings[idx] = torch.tensor(fast_text[word])
+
+    return embeddings
 
 
-# todo: can probably maintain order despite multiprocessing by storing in indices
-# todo: should you use threads instead?
-def get_embeddings(
-    tokenized_corpus: List[List[str]], vocab: List[str]
-) -> Tuple[List[List[str]], List[List[np.ndarray]]]:
-    with multiprocessing.Pool(max(1, multiprocessing.cpu_count() - 2)) as pool:
-        results = pool.map(partial(_process_sentence, vocab=vocab), tokenized_corpus)
+def prepare_data(file_path: str) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
+    corpus = get_corpus(file_path)
+    train_set, test_set, val_set = split_corpus(corpus)
 
-    tokenized_corpus, embeddings = zip(*results)
-    return tokenized_corpus, embeddings
+    vocab = build_vocab(train_set)
+    trai_embed = get_embeddings(vocab)
+
+    return (
+        ModelDataset(train_set, vocab, trai_embed),
+        ModelDataset(test_set, vocab, trai_embed),
+        ModelDataset(val_set, vocab, trai_embed),
+    )
