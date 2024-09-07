@@ -15,7 +15,7 @@ from model import (
 )
 
 
-def calc_perplexities(
+def set_perplexity(
     model: torch.nn.Module,
     loader: DataLoader,
     device: torch.device,
@@ -36,9 +36,10 @@ def main() -> None:
     data_path = "../data/Auguste_Maquet.txt"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    train_dataset, test_dataset, val_dataset = prepare_data(data_path)
+    train_dataset, val_dataset, test_dataset = prepare_data(data_path)
     os.system("cls || clear")
     print("info -> data prepared!")
+    print(f"info -> using device: {device}")
 
     vocab, embeddings = train_dataset.vocab, train_dataset.embeddings
 
@@ -47,7 +48,7 @@ def main() -> None:
     test_loader = DataLoader(test_dataset, batch_size=32)
     # todo: should I have my batch_size as 1 because I want per-unit perplexity while iterating? If so, why is perplexity increasing massively when I do that? Also, len(perplexities) = no. lines printed regardless.
 
-    dropout_rate = 0.5
+    dropout_rate = 0.1
     embedding_dim = embeddings.size(1)
     model = NeuralNetworkLanguageModel(
         len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
@@ -58,14 +59,14 @@ def main() -> None:
     epochs = 10
     best_val_loss = float("inf")
 
-    print("info -> beginning training")
+    print("info -> beginning training\n")
 
     for epoch in range(epochs):
         train_loss = train(model, train_loader, optimizer, criterion, device)
         val_loss = evaluate(model, val_loader, criterion, device)
 
         print(
-            f"epoch: {epoch + 1} -> train loss: {train_loss:.4f}, val Loss: {val_loss:.4f}"
+            f"epoch: {epoch + 1} -> train loss: {train_loss:.5f}, val loss: {val_loss:.5f}"
         )
 
         if val_loss > best_val_loss:
@@ -83,7 +84,7 @@ def main() -> None:
         [train_dataset.corpus, val_dataset.corpus, test_dataset.corpus],
         ["lm1_train", "lm1_val", "lm1_test"],
     ):
-        file_name = calc_perplexities(model, loader, device, corpus, name)
+        file_name = set_perplexity(model, loader, device, corpus, name)
         print(f"info -> {name} perplexities saved to {file_name}")
 
 

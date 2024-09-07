@@ -9,22 +9,32 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
     def __init__(
         self,
         vocab_size: int,
-        embedding_dim: int = 300,
+        embedding_dim: int,
         hidden_dim: int = 300,
-        dropout_rate: float = 0.0,
+        dropout_rate: float = 0.5,
     ) -> None:
         super(NeuralNetworkLanguageModel, self).__init__()
-        self.hidden1 = torch.nn.Linear(embedding_dim * 5, hidden_dim)
-        self.hidden2 = torch.nn.Linear(hidden_dim, vocab_size)
+
+        self.layer1 = torch.nn.Linear(embedding_dim * 5, hidden_dim)
         self.dropout = torch.nn.Dropout(dropout_rate)
+        self.layer2 = torch.nn.Linear(hidden_dim, vocab_size)
+        self.gelu = torch.nn.GELU()
+
         self.softmax = torch.nn.LogSoftmax(dim=1)
 
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
         inp = inp.view(inp.size(0), -1)
-        inp = torch.relu(self.hidden1(inp))
-        inp = self.dropout(inp)
-        inp = self.hidden2(inp)
-        return self.softmax(inp)
+
+        # First layer
+        hidden = self.layer1(inp)
+        hidden = self.gelu(hidden)
+        hidden = self.dropout(hidden)
+
+        # Second layer
+        pred = self.layer2(hidden)
+
+        # Softmax
+        return self.softmax(pred)
 
 
 def train(

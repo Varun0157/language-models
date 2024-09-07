@@ -25,7 +25,7 @@ def _clean(sentence: str) -> str:
     sentence = sentence.lower().strip()
     # sentence = sentence.translate(str.maketrans("", "", PUNCTUATION))
 
-    for ch in "\"”—“'’‘" + PUNCTUATION: # removed - for instances like well-known
+    for ch in "\"”—“'’‘" + PUNCTUATION:  # removed - for instances like well-known
         sentence = sentence.replace(ch, " ")
 
     return sentence
@@ -34,7 +34,10 @@ def _clean(sentence: str) -> str:
 # todo: consider going across sentences - although a TA is saying we need not
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
-    sentences = sentences[:30_000]  # a smaller corpus for testing
+
+    # random.shuffle(sentences)
+    # sentences = sentences[:1_000]  # a smaller corpus for testing
+
     tokenized_sentences = [word_tokenize(_clean(sentence)) for sentence in sentences]
 
     tokenized_corpus = []
@@ -56,19 +59,19 @@ def get_corpus(file_path: str) -> List[List[str]]:
 def split_corpus(
     corpus: List[List[str]],
     train_ratio: float = 0.7,
-    test_ratio: float = 0.2,
+    val_ratio: float = 0.2,
 ) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
     random.shuffle(corpus)
 
-    train_size, test_size = (
-        int(len(corpus) * ratio) for ratio in [train_ratio, test_ratio]
+    train_size, val_size = (
+        int(len(corpus) * ratio) for ratio in [train_ratio, val_ratio]
     )
-    assert train_size + test_size < len(corpus), "leave space for validation"
+    assert train_size + val_size < len(corpus), "leave space for validation"
 
     return (
         corpus[:train_size],
-        corpus[train_size : train_size + test_size],
-        corpus[train_size + test_size :],
+        corpus[train_size : train_size + val_size],
+        corpus[train_size + val_size :],
     )
 
 
@@ -79,7 +82,7 @@ class ModelDataset(Dataset):
         corpus: List[List[str]],
         vocab: List[str],
         embeddings: torch.Tensor,
-    ):
+    ) -> None:
         self.corpus: List[List[str]] = corpus
         self.vocab: Dict[str, int] = {word: idx for idx, word in enumerate(vocab)}
         self.embeddings: torch.Tensor = embeddings
@@ -130,13 +133,13 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
 
 def prepare_data(file_path: str) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
     corpus = get_corpus(file_path)
-    train_set, test_set, val_set = split_corpus(corpus)
+    train_set, val_set, test_set = split_corpus(corpus)
 
     vocab = build_vocab(train_set)
     trai_embed = get_embeddings(vocab)
 
     return (
         ModelDataset(train_set, vocab, trai_embed),
-        ModelDataset(test_set, vocab, trai_embed),
         ModelDataset(val_set, vocab, trai_embed),
+        ModelDataset(test_set, vocab, trai_embed),
     )
