@@ -74,14 +74,14 @@ def evaluate(
 
 def calculate_perplexity(
     model: torch.nn.Module,
-    test_loader: torch.utils.data.DataLoader,
+    loader: torch.utils.data.DataLoader,
     device: torch.device,
 ) -> List[float]:
     model.eval()
 
     sentence_perplexities = []
     with torch.no_grad():
-        for context, target in test_loader:
+        for context, target in loader:
             context, target = context.to(device), target.to(device)
 
             output = model(context)
@@ -94,16 +94,16 @@ def calculate_perplexity(
 
 
 def save_perplexities(
-    perplexities: List[float], test_dataset: List[List[str]], filename: str
+    perplexities: List[float], corpus: List[List[str]], file_name: str
 ) -> None:
     # get the sentences from the test_loader
     sentences = []
-    for sentence_data in test_dataset:
-        sentences.append(" ".join(sentence_data))
+    for sentence_data in corpus:
+        sentences.append(" ".join(sentence_data[:-1]) + " -> " + sentence_data[-1])
 
-    with open(filename, "w") as f:
+    with open(file_name, "w") as f:
         for sentence, perplexity in zip(sentences, perplexities):
-            f.write(f"{' '.join(sentence)}\t{perplexity}\n")
+            f.write(f"{sentence}\t\t\t\t{perplexity}\n")
 
         average_perplexity = sum(perplexities) / len(perplexities)
-        f.write(f"Average perplexity: {average_perplexity}")
+        f.write(f"\naverage perplexity: {average_perplexity}")

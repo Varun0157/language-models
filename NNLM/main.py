@@ -1,7 +1,8 @@
 import os
+from typing import List
 
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torch.optim.adam import Adam
 
 from processing import prepare_data
@@ -14,18 +15,39 @@ from model import (
 )
 
 
+def calc_perplexities(
+    model: torch.nn.Module,
+    loader: DataLoader,
+    device: torch.device,
+    corpus: List[List[str]],
+    name: str,
+) -> str:
+    # save perplexities for test data
+    # todo: can probably make this a single call
+    perplexities = calculate_perplexity(model, loader, device)
+
+    file_name = "2022101029_" + name + "_perplexity.txt"
+    save_perplexities(perplexities, corpus, file_name)
+
+    return file_name
+
+
 def main() -> None:
     data_path = "../data/Auguste_Maquet.txt"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     train_dataset, test_dataset, val_dataset = prepare_data(data_path)
+    os.system("cls || clear")
+    print("info -> data prepared!")
+
     vocab, embeddings = train_dataset.vocab, train_dataset.embeddings
 
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=32)
     test_loader = DataLoader(test_dataset, batch_size=32)
+    # todo: should I have my batch_size as 1 because I want per-unit perplexity while iterating? If so, why is perplexity increasing massively when I do that? Also, len(perplexities) = no. lines printed regardless.
 
-    dropout_rate = 0.0
+    dropout_rate = 0.5
     embedding_dim = embeddings.size(1)
     model = NeuralNetworkLanguageModel(
         len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
@@ -36,12 +58,14 @@ def main() -> None:
     epochs = 10
     best_val_loss = float("inf")
 
+    print("info -> beginning training")
+
     for epoch in range(epochs):
         train_loss = train(model, train_loader, optimizer, criterion, device)
         val_loss = evaluate(model, val_loader, criterion, device)
 
         print(
-            f"Epoch: {epoch + 1} : Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}"
+            f"epoch: {epoch + 1} -> train loss: {train_loss:.4f}, val Loss: {val_loss:.4f}"
         )
 
         if val_loss > best_val_loss:
@@ -49,14 +73,18 @@ def main() -> None:
 
         best_val_loss = val_loss
         torch.save(model.state_dict(), "best_model.pth")
-        print("\tModel saved!")
+        print("\tcurrent model saved!")
 
+    print("info -> training complete, loading model to calc perplexity.")
     model.load_state_dict(torch.load("best_model.pth", weights_only=True))
 
-    # save perplexities for test data
-    # todo: can probably make this a single call
-    perplexities = calculate_perplexity(model, test_loader, device)
-    save_perplexities(perplexities, test_dataset.corpus, "perplexities.txt")
+    for loader, corpus, name in zip(
+        [train_loader, val_loader, test_loader],
+        [train_dataset.corpus, val_dataset.corpus, test_dataset.corpus],
+        ["lm1_train", "lm1_val", "lm1_test"],
+    ):
+        file_name = calc_perplexities(model, loader, device, corpus, name)
+        print(f"info -> {name} perplexities saved to {file_name}")
 
 
 if __name__ == "__main__":

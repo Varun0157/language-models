@@ -7,6 +7,7 @@ import numpy as np
 
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
+from string import punctuation as PUNCTUATION
 
 import torch
 from torch.utils.data import Dataset
@@ -18,14 +19,23 @@ UNKNOWN: str = "<UNK>"
 ### tokenization ###
 
 nltk.download("punkt")
-nltk.download("punkt_tab")
 
 
-# todo: consider going across sentences
+def _clean(sentence: str) -> str:
+    sentence = sentence.lower().strip()
+    # sentence = sentence.translate(str.maketrans("", "", PUNCTUATION))
+
+    for ch in "\"”—“'’‘" + PUNCTUATION: # removed - for instances like well-known
+        sentence = sentence.replace(ch, " ")
+
+    return sentence
+
+
+# todo: consider going across sentences - although a TA is saying we need not
 def _tokenize(text: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
     sentences = sentences[:30_000]  # a smaller corpus for testing
-    tokenized_sentences = [word_tokenize(sentence) for sentence in sentences]
+    tokenized_sentences = [word_tokenize(_clean(sentence)) for sentence in sentences]
 
     tokenized_corpus = []
     for sentence in tokenized_sentences:
@@ -39,6 +49,7 @@ def get_corpus(file_path: str) -> List[List[str]]:
     with open(file_path, "r") as f:
         text = f.read()
     # todo: clean the data -> remove chapter titles, unnecessary numbers if any.
+    text = text[text.find("In a splendid") :]
     return _tokenize(text)
 
 
