@@ -46,9 +46,8 @@ def main() -> None:
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=32)
     test_loader = DataLoader(test_dataset, batch_size=32)
-    # todo: should I have my batch_size as 1 because I want per-unit perplexity while iterating? If so, why is perplexity increasing massively when I do that? Also, len(perplexities) = no. lines printed regardless.
 
-    dropout_rate = 0.1
+    dropout_rate = 0.9
     embedding_dim = embeddings.size(1)
     model = NeuralNetworkLanguageModel(
         len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
