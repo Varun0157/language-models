@@ -47,7 +47,7 @@ def main() -> None:
     val_loader = DataLoader(val_dataset, batch_size=32)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
-    dropout_rate = 0.9
+    dropout_rate = 0.3
     embedding_dim = embeddings.size(1)
     model = NeuralNetworkLanguageModel(
         len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
