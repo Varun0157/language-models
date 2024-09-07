@@ -1,4 +1,3 @@
-from os import path
 from common.evaluate import test_model
 
 if __name__ == "__main__":

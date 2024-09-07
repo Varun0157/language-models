@@ -1,5 +1,3 @@
-from typing import List
-
 import torch
 import torch.utils.data
 import torch.optim
@@ -35,5 +33,3 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
 
         # Softmax
         return self.softmax(pred)
-
-
