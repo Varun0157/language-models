@@ -13,6 +13,7 @@ from .train import (
     calculate_perplexity,
 )
 from NNLM.model import NeuralNetworkLanguageModel
+from RNN.model import RecurrentNeuralNetwork
 
 
 def set_perplexity(
@@ -49,6 +50,10 @@ def test_model(model_type: str, path_dir: str) -> None:
     match model_type:
         case "NNLM":
             model = NeuralNetworkLanguageModel(
+                len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
+            ).to(device)
+        case "RNN":
+            model = RecurrentNeuralNetwork(
                 len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
             ).to(device)
         case _:
