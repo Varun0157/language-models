@@ -16,7 +16,7 @@ class RecurrentNeuralNetwork(torch.nn.Module):
         self.lstm = torch.nn.LSTM(embedding_dim, hidden_dim, batch_first=True)
         self.dropout = torch.nn.Dropout(dropout_rate)
         self.layer = torch.nn.Linear(hidden_dim, vocab_size)
-        self.gelu = torch.nn.GELU()
+        # self.gelu = torch.nn.GELU()
 
         self.softmax = torch.nn.LogSoftmax(dim=1)
 
@@ -27,6 +27,6 @@ class RecurrentNeuralNetwork(torch.nn.Module):
         lstm_out = self.dropout(lstm_out)
 
         hidden = self.layer(lstm_out)
-        hidden = self.gelu(hidden)
+        # hidden = self.gelu(hidden)
 
         return self.softmax(hidden)
