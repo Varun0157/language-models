@@ -1,2 +1,3 @@
-*/__pycache__/
+**/__pycache__/
 .vector_cache/
+**/best_model.pth
