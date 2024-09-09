@@ -12,6 +12,7 @@ def train(
     criterion: torch.nn.Module,
     device: torch.device,
 ) -> float:
+    assert len(train_loader) > 0, "[train] training data must be present"
     model.train()
 
     total_loss = 0

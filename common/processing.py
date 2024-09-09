@@ -66,7 +66,12 @@ def split_corpus(
     train_size, val_size = (
         int(len(corpus) * ratio) for ratio in [train_ratio, val_ratio]
     )
-    assert train_size + val_size < len(corpus), "leave space for validation"
+    assert (
+        train_size > 0 and val_size > 0
+    ), "[split_corpus] train and validation data must be present"
+    assert train_size + val_size < len(
+        corpus
+    ), "[split_corpus] test data absent, adjust ratios"
 
     return (
         corpus[:train_size],
