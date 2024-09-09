@@ -8,8 +8,8 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
         self,
         vocab_size: int,
         embedding_dim: int,
+        dropout_rate: float,
         hidden_dim: int = 300,
-        dropout_rate: float = 0.5,
     ) -> None:
         super(NeuralNetworkLanguageModel, self).__init__()
 
