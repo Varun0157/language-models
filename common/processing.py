@@ -90,7 +90,7 @@ class ModelDataset(Dataset):
     def __len__(self) -> int:
         return len(self.corpus)
 
-    def __getitem__(self, idx) -> Tuple[torch.Tensor, int]:
+    def __getitem__(self, idx):
         sentence = self.corpus[idx]
 
         input_data = sentence[:5]
@@ -103,6 +103,8 @@ class ModelDataset(Dataset):
         target = sentence[5]
         target_index = self.vocab.get(target, self.vocab[UNKNOWN])
 
+        # classification problem. The target index denotes the index that we expect to be '1'.
+        # this index is passed into nll_loss as the target
         return context, target_index
 
 

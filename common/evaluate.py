@@ -14,6 +14,7 @@ from .train import (
 )
 from NNLM.model import NeuralNetworkLanguageModel
 from RNN.model import RecurrentNeuralNetwork
+from Transformer.model import TransformerDecoderLM
 
 
 def set_perplexity(
@@ -44,7 +45,7 @@ def test_model(model_type: str, path_dir: str) -> None:
     val_loader = DataLoader(val_dataset, batch_size=32)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
-    dropout_rate = 0.35
+    dropout_rate = 0.2
     embedding_dim = embeddings.size(1)
 
     match model_type:
@@ -56,6 +57,8 @@ def test_model(model_type: str, path_dir: str) -> None:
             model = RecurrentNeuralNetwork(
                 len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
             ).to(device)
+        case "Transformer":
+            model = TransformerDecoderLM(len(vocab), embedding_dim).to(device)
         case _:
             raise ValueError(f"model type {model_type} not supported")
 
