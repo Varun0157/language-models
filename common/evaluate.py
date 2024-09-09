@@ -51,6 +51,7 @@ def test_model(model_type: str, path_dir: str) -> None:
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
     dropout_rate = 0.3
+    print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
         case "NNLM":
@@ -67,10 +68,12 @@ def test_model(model_type: str, path_dir: str) -> None:
             raise ValueError(f"model type {model_type} not supported")
 
     criterion = torch.nn.NLLLoss(reduction="sum")
+    print("info -> criterion: ", type(criterion))
     optimizer = Adam(model.parameters())  # todo: learning rate is a hyper-param here
-    print("info -> dropout rate: ", dropout_rate)
+    print("info -> optimizer: ", type(optimizer))
 
     epochs = 10
+    print("info -> epochs: ", epochs)
     best_val_loss = float("inf")
     best_model_path = path_dir + "/best_model.pth"
 
