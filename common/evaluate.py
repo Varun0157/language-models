@@ -10,7 +10,7 @@ from .train import (
     save_perplexities,
     train,
     evaluate,
-    calculate_perplexity,
+    calculate_nll,
 )
 from NNLM.model import NeuralNetworkLanguageModel
 from RNN.model import RecurrentNeuralNetwork
@@ -26,43 +26,47 @@ def set_perplexity(
 ) -> None:
     # save perplexities for test data
     # todo: can probably make this a single call
-    perplexities = calculate_perplexity(model, loader, device)
-    save_perplexities(perplexities, corpus, file_name)
+    nll_losses = calculate_nll(model, loader, device)
+    assert len(nll_losses) == len(
+        corpus
+    ), "[set_perplexity] nll losses should be same length as corpus"
+    save_perplexities(nll_losses, corpus, file_name)
 
 
 def test_model(model_type: str, path_dir: str) -> None:
     data_path = "./data/Auguste_Maquet.txt"
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    BATCH_SIZE = 32  # reason for choice: arbitrary
 
     train_dataset, val_dataset, test_dataset = prepare_data(data_path)
     os.system("cls || clear")
     print("info -> data prepared!")
     print(f"info -> using device: {device}")
 
-    vocab, embeddings = train_dataset.vocab, train_dataset.embeddings
+    vocab_len = len(train_dataset.vocab)
+    embedding_dim = train_dataset.embeddings.size(1)
 
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=32)
-    test_loader = DataLoader(test_dataset, batch_size=32)
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
+    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
 
-    dropout_rate = 0.2
-    embedding_dim = embeddings.size(1)
+    dropout_rate = 0.3
 
     match model_type:
         case "NNLM":
             model = NeuralNetworkLanguageModel(
-                len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
+                vocab_len, dropout_rate=dropout_rate, embedding_dim=embedding_dim
             ).to(device)
         case "RNN":
             model = RecurrentNeuralNetwork(
-                len(vocab), dropout_rate=dropout_rate, embedding_dim=embedding_dim
+                vocab_len, dropout_rate=dropout_rate, embedding_dim=embedding_dim
             ).to(device)
         case "Transformer":
-            model = TransformerDecoderLM(len(vocab), embedding_dim).to(device)
+            model = TransformerDecoderLM(vocab_len, embedding_dim).to(device)
         case _:
             raise ValueError(f"model type {model_type} not supported")
 
-    criterion = torch.nn.NLLLoss()
+    criterion = torch.nn.NLLLoss(reduction="sum")
     optimizer = Adam(model.parameters())  # todo: learning rate is a hyper-param here
     print("info -> dropout rate: ", dropout_rate)
 

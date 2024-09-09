@@ -95,11 +95,10 @@ class ModelDataset(Dataset):
     def __len__(self) -> int:
         return len(self.corpus)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, int]:
         sentence = self.corpus[idx]
 
         input_data = sentence[:5]
-
         context_indices = [
             self.vocab.get(word, self.vocab[UNKNOWN]) for word in input_data
         ]

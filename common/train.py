@@ -1,10 +1,12 @@
 from typing import List
 
+import numpy as np
 import torch
 import torch.utils.data
 import torch.optim
 
 
+# todo: use reduction sum and divide by total number of items
 def train(
     model: torch.nn.Module,
     train_loader: torch.utils.data.DataLoader,
@@ -36,6 +38,8 @@ def evaluate(
     criterion: torch.nn.Module,
     device: torch.device,
 ) -> float:
+    assert test_loader.__len__() > 0, "[evaluate] testing data must be present"
+
     model.eval()
 
     total_loss = 0
@@ -44,14 +48,18 @@ def evaluate(
             context, target = context.to(device), target.to(device)
 
             output = model(context)
-            loss = criterion(output, target)
+            loss = criterion(
+                output, target
+            )  # total loss of the batch, that's why reduction="sum"
 
             total_loss += loss.item()
 
-    return total_loss / len(test_loader)
+    return total_loss / test_loader.__len__()
 
 
-def calculate_perplexity(
+# todo: I'm not certain that the sentence order is maintained. Do some research.
+# a fix would be to convert the dataloader into a batch size of 1.
+def calculate_nll(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: torch.device,
@@ -63,17 +71,19 @@ def calculate_perplexity(
         for context, target in loader:
             context, target = context.to(device), target.to(device)
 
+            # each of these are (batch_size, item)
             output = model(context)
-            loss = torch.nn.NLLLoss(reduction="mean")(output, target)
+            loss = torch.nn.NLLLoss(reduction="none")(output, target)
             # todo: the default reduction in NLLLoss is mean, but check fi we should add and divide instead
 
-            sentence_perplexities.append(torch.exp(loss).item())
+            # append the perplexities one by one
+            sentence_perplexities.extend(loss.cpu().numpy().tolist())
 
     return sentence_perplexities
 
 
 def save_perplexities(
-    perplexities: List[float], corpus: List[List[str]], file_name: str
+    nll_losses: List[float], corpus: List[List[str]], file_name: str
 ) -> None:
     # get the sentences from the test_loader
     sentences = []
@@ -81,8 +91,8 @@ def save_perplexities(
         sentences.append(" ".join(sentence_data[:-1]) + " -> " + sentence_data[-1])
 
     with open(file_name, "w") as f:
-        for sentence, perplexity in zip(sentences, perplexities):
-            f.write(f"{sentence}\t\t\t\t{perplexity}\n")
+        for sentence, nll_loss in zip(sentences, nll_losses):
+            f.write(f"{sentence}\t\t\t\t{np.exp(nll_loss)}\n")
 
-        average_perplexity = sum(perplexities) / len(perplexities)
+        average_perplexity = np.exp(sum(nll_losses) / len(nll_losses))
         f.write(f"\naverage perplexity: {average_perplexity}")
