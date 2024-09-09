@@ -1,1 +1,3 @@
 - tried dropout rate 0.3 -> training loss was decreasing for longer than val loss was, so will be doubling to 0.5.
+- nevermind, seems to be getting better with decreasing rate. Try 0.3, 0.2. 
+- 

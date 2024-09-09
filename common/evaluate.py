@@ -44,7 +44,7 @@ def test_model(model_type: str, path_dir: str) -> None:
     val_loader = DataLoader(val_dataset, batch_size=32)
     test_loader = DataLoader(test_dataset, batch_size=32)
 
-    dropout_rate = 0.6
+    dropout_rate = 0.35
     embedding_dim = embeddings.size(1)
 
     match model_type:
