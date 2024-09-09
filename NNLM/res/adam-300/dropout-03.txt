@@ -1,21 +1,23 @@
 info -> data prepared!
 info -> using device: cuda
+info -> dropout rate:  0.3
+info -> optimizer:  <class 'torch.optim.adam.Adam'>
 info -> beginning training
 
-epoch: 1 -> train loss: 6.03428, val loss: 5.68593
+epoch: 1 -> train loss: 193.38566, val loss: 181.41224
 	current model saved!
-epoch: 2 -> train loss: 5.62075, val loss: 5.63374
+epoch: 2 -> train loss: 179.49891, val loss: 180.34529
 	current model saved!
-epoch: 3 -> train loss: 5.50211, val loss: 5.61113
+epoch: 3 -> train loss: 175.33360, val loss: 180.03053
 	current model saved!
-epoch: 4 -> train loss: 5.43785, val loss: 5.61343
-epoch: 5 -> train loss: 5.39711, val loss: 5.61951
-epoch: 6 -> train loss: 5.36818, val loss: 5.63223
-epoch: 7 -> train loss: 5.34308, val loss: 5.65702
-epoch: 8 -> train loss: 5.32706, val loss: 5.66289
-epoch: 9 -> train loss: 5.31858, val loss: 5.69278
-epoch: 10 -> train loss: 5.30317, val loss: 5.70193
+epoch: 4 -> train loss: 173.07193, val loss: 180.34914
+epoch: 5 -> train loss: 171.69858, val loss: 180.30495
+epoch: 6 -> train loss: 170.68959, val loss: 180.67979
+epoch: 7 -> train loss: 170.02603, val loss: 181.33950
+epoch: 8 -> train loss: 169.44413, val loss: 181.91988
+epoch: 9 -> train loss: 169.03084, val loss: 182.34762
+epoch: 10 -> train loss: 168.75383, val loss: 182.95033
 info -> training complete, loading model to calc perplexity.
-info -> lm1_train perplexities saved to 2022101029_lm1_train_perplexity.txt
-info -> lm1_val perplexities saved to 2022101029_lm1_val_perplexity.txt
-info -> lm1_test perplexities saved to 2022101029_lm1_test_perplexity.txt
+info -> ./NNLM/2022101029_train_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_val_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_test_lm_perplexity.txt perplexities saved
