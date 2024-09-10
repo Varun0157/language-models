@@ -14,7 +14,8 @@ def train(
     criterion: torch.nn.Module,
     device: torch.device,
 ) -> float:
-    assert train_loader.__len__() > 0, "[train] training data must be present"
+    num_items: int = len(train_loader.dataset)  # type: ignore
+    assert num_items > 0, "[train] training data must be present"
     model.train()
 
     total_loss = 0
@@ -29,7 +30,7 @@ def train(
 
         total_loss += loss.item()
 
-    return total_loss / train_loader.__len__()
+    return total_loss / num_items
 
 
 def evaluate(
@@ -38,7 +39,8 @@ def evaluate(
     criterion: torch.nn.Module,
     device: torch.device,
 ) -> float:
-    assert test_loader.__len__() > 0, "[evaluate] testing data must be present"
+    num_items: int = len(test_loader.dataset)  # type: ignore
+    assert num_items > 0, "[evaluate] testing data must be present"
 
     model.eval()
 
@@ -54,7 +56,7 @@ def evaluate(
 
             total_loss += loss.item()
 
-    return total_loss / test_loader.__len__()
+    return total_loss / num_items
 
 
 # todo: I'm not certain that the sentence order is maintained. Do some research.
