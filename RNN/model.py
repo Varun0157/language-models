@@ -1,10 +1,9 @@
 import torch
-import torch.utils.data
-import torch.optim
+import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class RecurrentNeuralNetwork(torch.nn.Module):
+class RecurrentNeuralNetwork(nn.Module):
     def __init__(
         self,
         vocab_size: int,
@@ -14,20 +13,32 @@ class RecurrentNeuralNetwork(torch.nn.Module):
     ) -> None:
         super(RecurrentNeuralNetwork, self).__init__()
 
-        self.lstm = torch.nn.LSTM(embedding_dim, hidden_dim, batch_first=True)
-        self.dropout = torch.nn.Dropout(dropout_rate)
-        self.layer = torch.nn.Linear(hidden_dim, vocab_size)
-        # self.gelu = torch.nn.GELU()
+        self.lstm = nn.LSTM(embedding_dim, hidden_dim, batch_first=True, num_layers=2)
+        self.dropout = nn.Dropout(dropout_rate)
 
-        self.softmax = torch.nn.LogSoftmax(dim=1)
+        self.layer = nn.Linear(hidden_dim, vocab_size)
+        self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
-        lstm_out, _ = self.lstm(inp)
-        # take the output of the last sequence
-        lstm_out = lstm_out[:, -1, :]  # (32, 5, 300) -> (32, 300)
-        lstm_out = self.dropout(lstm_out)
+        # Calculate sequence lengths
+        lengths = (inp.sum(dim=-1) != 0).sum(dim=1).cpu()
 
-        hidden = self.layer(lstm_out)
-        # hidden = self.gelu(hidden)
+        # Pack the sequence
+        packed_input = pack_padded_sequence(
+            inp, lengths, batch_first=True, enforce_sorted=False
+        )
+
+        # Pass through LSTM
+        packed_output, _ = self.lstm(packed_input)
+
+        # Unpack the sequence
+        output, _ = pad_packed_sequence(packed_output, batch_first=True)
+
+        # Get the last non-padded output for each sequence
+        last_output = output[torch.arange(output.size(0)), lengths - 1]
+
+        # Apply dropout and linear layer
+        hidden = self.dropout(last_output)
+        hidden = self.layer(hidden)
 
         return self.softmax(hidden)
