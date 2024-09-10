@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 import torch
@@ -18,7 +18,7 @@ def train(
     model.train()
 
     total_loss = 0
-    for context, target in train_loader:
+    for context, target, _ in train_loader:
         context, target = context.to(device), target.to(device)
         optimizer.zero_grad()
 
@@ -44,7 +44,7 @@ def evaluate(
 
     total_loss = 0
     with torch.no_grad():
-        for context, target in test_loader:
+        for context, target, _ in test_loader:
             context, target = context.to(device), target.to(device)
 
             output = model(context)
@@ -63,12 +63,12 @@ def calculate_nll(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: torch.device,
-) -> List[float]:
+) -> Tuple[List[float], List[str]]:
     model.eval()
 
-    sentence_perplexities = []
+    sentence_perplexities, sentences = [], []
     with torch.no_grad():
-        for context, target in loader:
+        for context, target, batch_sentences in loader:
             context, target = context.to(device), target.to(device)
 
             # each of these are (batch_size, item)
@@ -78,17 +78,19 @@ def calculate_nll(
 
             # append the perplexities one by one
             sentence_perplexities.extend(loss.cpu().numpy().tolist())
+            sentences.extend(batch_sentences)
 
-    return sentence_perplexities
+    return sentence_perplexities, sentences
 
 
 def save_perplexities(
-    nll_losses: List[float], corpus: List[List[str]], file_name: str
+    nll_losses: List[float], corpus: List[str], file_name: str
 ) -> None:
     # get the sentences from the test_loader
     sentences = []
-    for sentence_data in corpus:
-        sentences.append(" ".join(sentence_data[:-1]) + " -> " + sentence_data[-1])
+    # for sentence_data in corpus:
+    #     sentences.append(" ".join(sentence_data[:-1]) + " -> " + sentence_data[-1])
+    sentences = corpus
 
     with open(file_name, "w") as f:
         for sentence, nll_loss in zip(sentences, nll_losses):

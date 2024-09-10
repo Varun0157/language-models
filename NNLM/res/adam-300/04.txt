@@ -1,0 +1,26 @@
+info -> data prepared!
+info -> using device: cuda
+info -> dropout rate:  0.4
+info -> criterion:  <class 'torch.nn.modules.loss.NLLLoss'>
+info -> optimizer:  <class 'torch.optim.adam.Adam'>
+info -> epochs:  10
+info -> beginning training
+
+epoch: 1 -> train loss: 195.91620, val loss: 183.68802
+	current model saved!
+epoch: 2 -> train loss: 183.30192, val loss: 181.48133
+	current model saved!
+epoch: 3 -> train loss: 179.73682, val loss: 181.10828
+	current model saved!
+epoch: 4 -> train loss: 177.89582, val loss: 180.65729
+	current model saved!
+epoch: 5 -> train loss: 176.80028, val loss: 180.85297
+epoch: 6 -> train loss: 176.05049, val loss: 181.17788
+epoch: 7 -> train loss: 175.69435, val loss: 181.50691
+epoch: 8 -> train loss: 175.33102, val loss: 181.72133
+epoch: 9 -> train loss: 175.03028, val loss: 182.12942
+epoch: 10 -> train loss: 174.94128, val loss: 182.95485
+info -> training complete, loading model to calc perplexity.
+info -> ./NNLM/2022101029_train_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_val_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_test_lm_perplexity.txt perplexities saved

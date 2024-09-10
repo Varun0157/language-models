@@ -1,9 +1,5 @@
 import random
 from typing import List, Tuple, Dict
-import multiprocessing
-from functools import partial
-
-import numpy as np
 
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
@@ -11,6 +7,7 @@ from string import punctuation as PUNCTUATION
 
 import torch
 from torch.utils.data import Dataset
+from torch.nn.utils.rnn import pad_sequence
 
 from torchtext.vocab import FastText
 
@@ -32,7 +29,7 @@ def _clean(sentence: str) -> str:
 
 
 # todo: consider going across sentences - although a TA is saying we need not
-def _tokenize(text: str) -> List[List[str]]:
+def _tokenize(text: str, model_type: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
 
     # random.shuffle(sentences)
@@ -42,18 +39,25 @@ def _tokenize(text: str) -> List[List[str]]:
 
     tokenized_corpus = []
     for sentence in tokenized_sentences:
-        for i in range(len(sentence) - 5):
-            tokenized_corpus.append(sentence[i : i + 6])
+        if model_type == "NNLM" or True:
+            for i in range(len(sentence) - 5):
+                tokenized_corpus.append(sentence[i : i + 6])
+        elif model_type in ["RNN", "Transformer"]:
+            if len(sentence) < 5:
+                continue
+            tokenized_corpus.append(sentence)
+        else:
+            raise ValueError(f"[_tokenize] model_type: {model_type} not recognized")
 
     return tokenized_corpus
 
 
-def get_corpus(file_path: str) -> List[List[str]]:
+def get_corpus(file_path: str, model_type: str) -> List[List[str]]:
     with open(file_path, "r") as f:
         text = f.read()
     # todo: clean the data -> remove chapter titles, unnecessary numbers if any.
     text = text[text.find("In a splendid") :]
-    return _tokenize(text)
+    return _tokenize(text, model_type)
 
 
 def split_corpus(
@@ -95,21 +99,27 @@ class ModelDataset(Dataset):
     def __len__(self) -> int:
         return len(self.corpus)
 
-    def __getitem__(self, idx) -> Tuple[torch.Tensor, int]:
+    def __getitem__(self, idx) -> Tuple[torch.Tensor, int, str]:
         sentence = self.corpus[idx]
 
-        input_data = sentence[:5]
+        input_data = sentence[:-1]
         context_indices = [
             self.vocab.get(word, self.vocab[UNKNOWN]) for word in input_data
         ]
         context = torch.stack([self.embeddings[idx] for idx in context_indices])
 
-        target = sentence[5]
+        target = sentence[-1]
         target_index = self.vocab.get(target, self.vocab[UNKNOWN])
 
-        # classification problem. The target index denotes the index that we expect to be '1'.
-        # this index is passed into nll_loss as the target
-        return context, target_index
+        sentence_data = " ".join(sentence)
+        return context, target_index, sentence_data
+
+    @staticmethod
+    def collate_fn(batch):
+        contexts, targets, sentences = zip(*batch)
+        padded_contexts = pad_sequence(contexts, batch_first=True, padding_value=0)
+
+        return padded_contexts, torch.tensor(targets), sentences
 
 
 ### embedding ###
@@ -137,8 +147,10 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
     return embeddings
 
 
-def prepare_data(file_path: str) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
-    corpus = get_corpus(file_path)
+def prepare_data(
+    file_path: str, model_type: str
+) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
+    corpus = get_corpus(file_path, model_type)
     train_set, val_set, test_set = split_corpus(corpus)
 
     vocab = build_vocab(train_set)

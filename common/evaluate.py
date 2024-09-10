@@ -1,36 +1,35 @@
 import os
-from typing import List
 
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.adam import Adam
 
-from .processing import prepare_data
+from NNLM.model import NeuralNetworkLanguageModel
+from RNN.model import RecurrentNeuralNetwork
+from Transformer.model import TransformerDecoderLM
+
+from .processing import prepare_data, ModelDataset
 from .train import (
     save_perplexities,
     train,
     evaluate,
     calculate_nll,
 )
-from NNLM.model import NeuralNetworkLanguageModel
-from RNN.model import RecurrentNeuralNetwork
-from Transformer.model import TransformerDecoderLM
 
 
 def set_perplexity(
     model: torch.nn.Module,
     loader: DataLoader,
     device: torch.device,
-    corpus: List[List[str]],
     file_name: str,
 ) -> None:
     # save perplexities for test data
     # todo: can probably make this a single call
-    nll_losses = calculate_nll(model, loader, device)
+    nll_losses, sentences = calculate_nll(model, loader, device)
     assert len(nll_losses) == len(
-        corpus
-    ), "[set_perplexity] nll losses should be same length as corpus"
-    save_perplexities(nll_losses, corpus, file_name)
+        sentences
+    ), "[set_perplexity] nll losses should be same length as sentences"
+    save_perplexities(nll_losses, sentences, file_name)
 
 
 def test_model(model_type: str, path_dir: str) -> None:
@@ -38,7 +37,7 @@ def test_model(model_type: str, path_dir: str) -> None:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     BATCH_SIZE = 32  # reason for choice: arbitrary
 
-    train_dataset, val_dataset, test_dataset = prepare_data(data_path)
+    train_dataset, val_dataset, test_dataset = prepare_data(data_path, model_type)
     os.system("cls || clear")
     print("info -> data prepared!")
     print(f"info -> using device: {device}")
@@ -46,11 +45,17 @@ def test_model(model_type: str, path_dir: str) -> None:
     vocab_len = len(train_dataset.vocab)
     embedding_dim = train_dataset.embeddings.size(1)
 
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE)
-    val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE)
+    train_loader = DataLoader(
+        train_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
+    )
 
-    dropout_rate = 0.3
+    dropout_rate = 0.4
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
@@ -65,7 +70,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         case "Transformer":
             model = TransformerDecoderLM(vocab_len, embedding_dim).to(device)
         case _:
-            raise ValueError(f"model type {model_type} not supported")
+            raise ValueError(f"[test_model] model type {model_type} not recognized")
 
     criterion = torch.nn.NLLLoss(reduction="sum")
     print("info -> criterion: ", type(criterion))
@@ -106,5 +111,5 @@ def test_model(model_type: str, path_dir: str) -> None:
         [train_dataset.corpus, val_dataset.corpus, test_dataset.corpus],
         file_paths,
     ):
-        set_perplexity(model, loader, device, corpus, file_name)
+        set_perplexity(model, loader, device, file_name)
         print(f"info -> {file_name} perplexities saved")

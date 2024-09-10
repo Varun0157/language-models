@@ -1,6 +1,7 @@
 import torch
 import torch.utils.data
 import torch.optim
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
 class RecurrentNeuralNetwork(torch.nn.Module):
@@ -23,7 +24,7 @@ class RecurrentNeuralNetwork(torch.nn.Module):
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
         lstm_out, _ = self.lstm(inp)
         # take the output of the last sequence
-        lstm_out = lstm_out[:, -1, :] # (32, 5, 300) -> (32, 300)
+        lstm_out = lstm_out[:, -1, :]  # (32, 5, 300) -> (32, 300)
         lstm_out = self.dropout(lstm_out)
 
         hidden = self.layer(lstm_out)
