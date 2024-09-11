@@ -121,9 +121,8 @@ def test_model(model_type: str, path_dir: str) -> None:
         for name in ("train", "val", "test")
     ]
 
-    for loader, corpus, file_name in zip(
+    for loader, file_name in zip(
         [train_loader, val_loader, test_loader],
-        [train_dataset.corpus, val_dataset.corpus, test_dataset.corpus],
         file_paths,
     ):
         set_perplexity(model, loader, device, file_name)
