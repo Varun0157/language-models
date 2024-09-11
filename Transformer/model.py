@@ -1,6 +1,7 @@
-import torch
-import torch.nn as nn
 import math
+
+import torch
+from torch import nn
 
 SEQUENCE_LENGTH = 5
 
@@ -28,6 +29,7 @@ class PositionalEncoding(nn.Module):
         """
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
+
         pe = torch.zeros(max_len, d_model)
         position = torch.arange(0, max_len, dtype=torch.float).unsqueeze(1)
         div_term = torch.exp(
@@ -46,34 +48,37 @@ class PositionalEncoding(nn.Module):
             x: [sequence length, batch size, embed dim]
             output: [sequence length, batch size, embed dim]
         """
+
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
 
-class TextGen(nn.Module):
+class TransformerModel(nn.Module):
     def __init__(
         self,
         vocab_size,
-        embed_dim,
-        num_layers,
-        num_heads,
-        hidden_dim: int = 300,
-        dropout_ratio: float = 0.5,
+        dropout_rate: float,
+        device: torch.device,
+        embed_dim=300,
+        num_layers=1,
+        num_heads=3,
     ):
-        super(TextGen, self).__init__()
+        super(TransformerModel, self).__init__()
         self.pos_encoder = PositionalEncoding(
             max_len=SEQUENCE_LENGTH, d_model=embed_dim
         )
 
         self.decoder_layer = nn.TransformerDecoderLayer(
             d_model=embed_dim, nhead=num_heads, batch_first=True
-        )
+        ).to(device)
         self.decoder = nn.TransformerDecoder(
             decoder_layer=self.decoder_layer,
             num_layers=num_layers,
-        )
-        self.dropout = nn.Dropout(dropout_ratio)
-        self.linear = nn.Linear(embed_dim, vocab_size)
+        ).to(device)
+
+        self.linear = nn.Linear(embed_dim, vocab_size).to(device)
+        self.dropout = nn.Dropout(dropout_rate)
+
         self.softmax = nn.LogSoftmax(dim=1)
 
     # Positional encoding is required. Else the model does not learn.
@@ -85,4 +90,6 @@ class TextGen(nn.Module):
         x = self.decoder(x, memory=x, tgt_mask=input_mask, memory_mask=input_mask)
         x = self.dropout(x)
         out = self.linear(x)
-        return self.softmax(out)
+        out = self.softmax(out)
+        out = out.view(out.size(0), -1)
+        return out

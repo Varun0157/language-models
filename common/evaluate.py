@@ -6,7 +6,7 @@ from torch.optim.adam import Adam
 
 from NNLM.model import NeuralNetworkLanguageModel
 from RNN.model import RecurrentNeuralNetwork
-from Transformer.model import TextGen
+from Transformer.model import TransformerModel
 
 from .processing import prepare_data, ModelDataset
 from .train import (
@@ -55,24 +55,32 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.9
+    dropout_rate = 0.4
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
         case "NNLM":
             model = NeuralNetworkLanguageModel(
-                vocab_len, dropout_rate=dropout_rate, embedding_dim=embedding_dim
+                vocab_len,
+                dropout_rate=dropout_rate,
+                embedding_dim=embedding_dim,
+                device=device,
             ).to(device)
         case "RNN":
             model = RecurrentNeuralNetwork(
-                vocab_len, dropout_rate=dropout_rate, embedding_dim=embedding_dim
+                vocab_len,
+                dropout_rate=dropout_rate,
+                embedding_dim=embedding_dim,
+                device=device,
             ).to(device)
         case "Transformer":
-            model = TextGen(
-                vocab_len,
-                embedding_dim,
-                num_layers=3,
-                num_heads=8,
+            model = TransformerModel(
+                vocab_size=vocab_len,
+                dropout_rate=dropout_rate,
+                embed_dim=embedding_dim,
+                device=device,
+                num_layers=1,
+                num_heads=6,
             ).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")

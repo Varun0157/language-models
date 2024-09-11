@@ -9,13 +9,14 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
         vocab_size: int,
         embedding_dim: int,
         dropout_rate: float,
+        device: torch.device,
         hidden_dim: int = 300,
     ) -> None:
         super(NeuralNetworkLanguageModel, self).__init__()
 
-        self.layer1 = torch.nn.Linear(embedding_dim * 5, hidden_dim)
+        self.layer1 = torch.nn.Linear(embedding_dim * 5, hidden_dim, device=device)
         self.dropout = torch.nn.Dropout(dropout_rate)
-        self.layer2 = torch.nn.Linear(hidden_dim, vocab_size)
+        self.layer2 = torch.nn.Linear(hidden_dim, vocab_size, device=device)
         self.gelu = torch.nn.GELU()
 
         self.softmax = torch.nn.LogSoftmax(dim=1)
