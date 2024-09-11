@@ -32,14 +32,10 @@ class RecurrentNeuralNetwork(nn.Module):
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
         # calculate sequence lengths, and pack the sequence
         lengths = (inp.sum(dim=-1) != 0).sum(dim=1).cpu()
+        # inp.sum(dim=-1) creates a boolean tensor where True indicates a non-zero row
+        # .sum(dim=1) sums the boolean tensor along the row axis, giving the number of non-zero elements in each row
 
-        # filter out any sequences with length 0
         non_zero_mask = lengths > 0
-        # if not non_zero_mask.all():
-        #     print(
-        #         f"Warning: Found {(~non_zero_mask).sum()} sequences with length 0. These will be filtered out."
-        #     )
-
         inp = inp[non_zero_mask]
         lengths = lengths[non_zero_mask]
 
@@ -55,6 +51,7 @@ class RecurrentNeuralNetwork(nn.Module):
 
         # get the last non-padded output for each sequence
         last_output = output[torch.arange(output.size(0)), lengths - 1]
+        # first index selects all the rows, second index selects the last non-padded output for each row
 
         hidden = self.gelu(last_output)
         hidden = self.dropout(hidden)

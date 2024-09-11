@@ -8,10 +8,6 @@ MAX_SEQUENCE_LENGTH = 400  # max len is 353
 
 
 def generate_square_subsequent_mask(sz):
-    """
-    Generate a square mask for the sequence. The masked positions are filled with float('-inf').
-    Unmasked positions are filled with float(0.0).
-    """
     mask = (torch.triu(torch.ones(sz, sz)) == 1).transpose(0, 1)
     mask = (
         mask.float()
@@ -23,11 +19,6 @@ def generate_square_subsequent_mask(sz):
 
 class PositionalEncoding(nn.Module):
     def __init__(self, max_len, d_model, dropout=0.1):
-        """
-        :param max_len: Input length sequence.
-        :param d_model: Embedding dimension.
-        :param dropout: Dropout value (default=0.1)
-        """
         super(PositionalEncoding, self).__init__()
         self.dropout = nn.Dropout(p=dropout)
 
@@ -42,14 +33,6 @@ class PositionalEncoding(nn.Module):
         self.register_buffer("pe", pe)
 
     def forward(self, x):
-        """
-        Inputs of forward function
-        :param x: the sequence fed to the positional encoder model (required).
-        Shape:
-            x: [sequence length, batch size, embed dim]
-            output: [sequence length, batch size, embed dim]
-        """
-
         x = x + self.pe[:, : x.size(1)]
         return self.dropout(x)
 
@@ -88,10 +71,8 @@ class TransformerModel(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, x):
-        # Calculate sequence lengths
+        # as in RNN's
         lengths = (x.sum(dim=-1) != 0).sum(dim=1)
-
-        # Filter out any sequences with length 0
         non_zero_mask = lengths > 0
         x = x[non_zero_mask]
         lengths = lengths[non_zero_mask]
@@ -109,7 +90,7 @@ class TransformerModel(nn.Module):
         # Apply transformer decoder
         x = self.decoder(x, memory=x, tgt_mask=input_mask, memory_mask=input_mask)
 
-        # Get the last non-padded output for each sequence
+        # Get the last non-padded output for each sequence, as in RNN
         last_output = x[torch.arange(x.size(0)), lengths - 1]
 
         # Apply final linear layer and softmax
