@@ -69,14 +69,18 @@ class TransformerModel(nn.Module):
         )
 
         self.decoder_layer = nn.TransformerDecoderLayer(
-            d_model=embed_dim, nhead=num_heads, batch_first=True
-        ).to(device)
+            d_model=embed_dim,
+            nhead=num_heads,
+            batch_first=True,
+            dropout=0.3,
+            device=device,
+        )
         self.decoder = nn.TransformerDecoder(
             decoder_layer=self.decoder_layer,
             num_layers=num_layers,
-        ).to(device)
+        )
 
-        self.linear = nn.Linear(embed_dim, vocab_size).to(device)
+        self.linear = nn.Linear(embed_dim, vocab_size, device=device)
         self.dropout = nn.Dropout(dropout_rate)
 
         self.softmax = nn.LogSoftmax(dim=1)
@@ -88,8 +92,10 @@ class TransformerModel(nn.Module):
 
         x = self.pos_encoder(x)
         x = self.decoder(x, memory=x, tgt_mask=input_mask, memory_mask=input_mask)
+
         x = self.dropout(x)
         out = self.linear(x)
         out = self.softmax(out)
         out = out.view(out.size(0), -1)
+
         return out

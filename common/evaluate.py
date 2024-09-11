@@ -39,6 +39,7 @@ def test_model(model_type: str, path_dir: str) -> None:
 
     train_dataset, val_dataset, test_dataset = prepare_data(data_path, model_type)
     os.system("cls || clear")
+    print("model_type: ", model_type)
     print("info -> data prepared!")
     print(f"info -> using device: {device}")
 
@@ -55,7 +56,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.4
+    dropout_rate = 0.5
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
@@ -79,7 +80,7 @@ def test_model(model_type: str, path_dir: str) -> None:
                 dropout_rate=dropout_rate,
                 embed_dim=embedding_dim,
                 device=device,
-                num_layers=1,
+                num_layers=2,
                 num_heads=6,
             ).to(device)
         case _:

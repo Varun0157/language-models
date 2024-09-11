@@ -15,12 +15,17 @@ class RecurrentNeuralNetwork(nn.Module):
         super(RecurrentNeuralNetwork, self).__init__()
 
         self.lstm = nn.LSTM(
-            embedding_dim, hidden_dim, batch_first=True, dropout=0.3, num_layers=5
-        ).to(device)
+            embedding_dim,
+            hidden_dim,
+            batch_first=True,
+            dropout=0.3,
+            num_layers=5,
+            device=device,
+        )
         self.gelu = nn.GELU()
         self.dropout = nn.Dropout(dropout_rate)
 
-        self.layer = nn.Linear(hidden_dim, vocab_size).to(device)
+        self.layer = nn.Linear(hidden_dim, vocab_size, device=device)
         self.softmax = nn.LogSoftmax(dim=1)
 
     def forward(self, inp: torch.Tensor) -> torch.Tensor:
