@@ -6,7 +6,7 @@ from torch.optim.adam import Adam
 
 from NNLM.model import NeuralNetworkLanguageModel
 from RNN.model import RecurrentNeuralNetwork
-from Transformer.model import TransformerDecoderLM
+from Transformer.model import TextGen
 
 from .processing import prepare_data, ModelDataset
 from .train import (
@@ -55,7 +55,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.6
+    dropout_rate = 0.9
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
@@ -68,13 +68,20 @@ def test_model(model_type: str, path_dir: str) -> None:
                 vocab_len, dropout_rate=dropout_rate, embedding_dim=embedding_dim
             ).to(device)
         case "Transformer":
-            model = TransformerDecoderLM(vocab_len, embedding_dim).to(device)
+            model = TextGen(
+                vocab_len,
+                embedding_dim,
+                num_layers=3,
+                num_heads=8,
+            ).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
 
     criterion = torch.nn.NLLLoss(reduction="sum")
     print("info -> criterion: ", type(criterion))
-    optimizer = Adam(model.parameters())  # todo: learning rate is a hyper-param here
+    optimizer = Adam(
+        model.parameters(), weight_decay=1e-5
+    )  # todo: learning rate is a hyper-param here
     print("info -> optimizer: ", type(optimizer))
 
     epochs = 10

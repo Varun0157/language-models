@@ -32,7 +32,7 @@ def _clean(sentence: str) -> str:
 def _tokenize(text: str, model_type: str) -> List[List[str]]:
     sentences = sent_tokenize(text)
 
-    # random.shuffle(sentences)
+    # random.shuffle(x=sentences)
     # sentences = sentences[:1_000]  # a smaller corpus for testing
 
     tokenized_sentences = [word_tokenize(_clean(sentence)) for sentence in sentences]
@@ -45,7 +45,7 @@ def _tokenize(text: str, model_type: str) -> List[List[str]]:
             for i in range(len(sentence) - 5):
                 tokenized_corpus.append(sentence[i : i + 6])
         elif model_type in ["RNN", "Transformer"]:
-            if len(sentence) <= 3:
+            if len(sentence) <= 5:
                 continue
             tokenized_corpus.append(sentence)
         else:
