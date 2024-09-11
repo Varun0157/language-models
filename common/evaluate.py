@@ -59,7 +59,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.1
+    dropout_rate = 0.6
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
@@ -92,7 +92,7 @@ def test_model(model_type: str, path_dir: str) -> None:
 
     criterion = torch.nn.NLLLoss(reduction="sum")
     print("info -> criterion: ", type(criterion))
-    optimizer = RMSprop(model.parameters(), weight_decay=1e-5, lr=lr)
+    optimizer = Adam(model.parameters(), weight_decay=1e-5, lr=lr)
     print("info -> optimizer: ", type(optimizer))
 
     epochs = 10
