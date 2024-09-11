@@ -1,0 +1,28 @@
+model_type:  Transformer
+info -> data prepared!
+info -> using device: cuda
+info -> dropout rate:  0.6
+info -> criterion:  <class 'torch.nn.modules.loss.NLLLoss'>
+info -> optimizer:  <class 'torch.optim.adam.Adam'>
+info -> epochs:  10
+info -> beginning training
+
+epoch: 1 -> train loss: 8.795750, val loss: 8.368242	 time: 96.52s
+	current model saved!
+epoch: 2 -> train loss: 7.907043, val loss: 8.011024	 time: 96.42s
+	current model saved!
+epoch: 3 -> train loss: 7.670038, val loss: 7.921460	 time: 96.47s
+	current model saved!
+epoch: 4 -> train loss: 7.574221, val loss: 7.886124	 time: 96.52s
+	current model saved!
+epoch: 5 -> train loss: 7.517751, val loss: 7.891013	 time: 96.43s
+epoch: 6 -> train loss: 7.482248, val loss: 7.894734	 time: 96.47s
+epoch: 7 -> train loss: 7.439622, val loss: 7.877152	 time: 96.43s
+	current model saved!
+epoch: 8 -> train loss: 7.409135, val loss: 7.919251	 time: 96.50s
+epoch: 9 -> train loss: 7.375182, val loss: 7.895241	 time: 96.38s
+epoch: 10 -> train loss: 7.353000, val loss: 7.921946	 time: 96.41s
+info -> training complete, loading model to calc perplexity.
+info -> ./Transformer/2022101029_train_lm_perplexity.txt perplexities saved
+info -> ./Transformer/2022101029_val_lm_perplexity.txt perplexities saved
+info -> ./Transformer/2022101029_test_lm_perplexity.txt perplexities saved

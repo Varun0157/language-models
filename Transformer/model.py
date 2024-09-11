@@ -2,8 +2,9 @@ import math
 
 import torch
 from torch import nn
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
-SEQUENCE_LENGTH = 5
+MAX_SEQUENCE_LENGTH = 400  # max len is 353
 
 
 def generate_square_subsequent_mask(sz):
@@ -60,42 +61,60 @@ class TransformerModel(nn.Module):
         dropout_rate: float,
         device: torch.device,
         embed_dim=300,
-        num_layers=1,
-        num_heads=3,
+        num_layers=2,
+        num_heads=6,
     ):
         super(TransformerModel, self).__init__()
+        self.device = device
+
         self.pos_encoder = PositionalEncoding(
-            max_len=SEQUENCE_LENGTH, d_model=embed_dim
+            max_len=MAX_SEQUENCE_LENGTH, d_model=embed_dim
         )
 
         self.decoder_layer = nn.TransformerDecoderLayer(
             d_model=embed_dim,
             nhead=num_heads,
             batch_first=True,
-            dropout=0.3,
-            device=device,
+            dropout=0.4,
         )
         self.decoder = nn.TransformerDecoder(
             decoder_layer=self.decoder_layer,
             num_layers=num_layers,
         )
 
-        self.linear = nn.Linear(embed_dim, vocab_size, device=device)
+        self.linear = nn.Linear(embed_dim, vocab_size)
         self.dropout = nn.Dropout(dropout_rate)
 
         self.softmax = nn.LogSoftmax(dim=1)
 
-    # Positional encoding is required. Else the model does not learn.
     def forward(self, x):
-        # Generate input sequence mask with shape (SEQUENCE_LENGTH, SEQUENCE_LENGTH)
-        input_mask = generate_square_subsequent_mask(x.size(1)).to(x.device)
+        # Calculate sequence lengths
+        lengths = (x.sum(dim=-1) != 0).sum(dim=1)
 
+        # Filter out any sequences with length 0
+        non_zero_mask = lengths > 0
+        x = x[non_zero_mask]
+        lengths = lengths[non_zero_mask]
+
+        if len(lengths) == 0:
+            raise ValueError("All sequences in the batch have length 0")
+
+        # Generate input sequence mask
+        max_len = x.size(1)
+        input_mask = generate_square_subsequent_mask(max_len).to(self.device)
+
+        # Apply positional encoding
         x = self.pos_encoder(x)
+
+        # Apply transformer decoder
         x = self.decoder(x, memory=x, tgt_mask=input_mask, memory_mask=input_mask)
 
-        x = self.dropout(x)
-        out = self.linear(x)
+        # Get the last non-padded output for each sequence
+        last_output = x[torch.arange(x.size(0)), lengths - 1]
+
+        # Apply final linear layer and softmax
+        out = self.dropout(last_output)
+        out = self.linear(out)
         out = self.softmax(out)
-        out = out.view(out.size(0), -1)
 
         return out
