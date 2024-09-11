@@ -1,3 +1,4 @@
+model_type:  RNN
 info -> data prepared!
 info -> using device: cuda
 info -> dropout rate:  0.5
@@ -6,20 +7,24 @@ info -> optimizer:  <class 'torch.optim.adam.Adam'>
 info -> epochs:  10
 info -> beginning training
 
-epoch: 1 -> train loss: 8.16818, val loss: 7.79136
-        current model saved!
-epoch: 2 -> train loss: 7.33084, val loss: 7.62690
-        current model saved!
-epoch: 3 -> train loss: 6.96893, val loss: 7.55979
-        current model saved!
-epoch: 4 -> train loss: 6.65451, val loss: 7.56541
-epoch: 5 -> train loss: 6.34150, val loss: 7.55847
-        current model saved!
-epoch: 6 -> train loss: 6.04501, val loss: 7.60947
-epoch: 7 -> train loss: 5.75597, val loss: 7.67104
-epoch: 8 -> train loss: 5.43611, val loss: 7.73695
-epoch: 9 -> train loss: 5.12119, val loss: 7.78734
-epoch: 10 -> train loss: 4.82741, val loss: 7.90228
+epoch: 1 -> train loss: 8.302354, val loss: 7.934327	 time: 65.75s
+	current model saved!
+epoch: 2 -> train loss: 7.796241, val loss: 7.862254	 time: 71.15s
+	current model saved!
+epoch: 3 -> train loss: 7.556530, val loss: 7.795131	 time: 71.24s
+	current model saved!
+epoch: 4 -> train loss: 7.352598, val loss: 7.801101	 time: 73.87s
+epoch: 5 -> train loss: 7.158100, val loss: 7.749845	 time: 73.31s
+	current model saved!
+epoch: 6 -> train loss: 6.974060, val loss: 7.710351	 time: 76.64s
+	current model saved!
+epoch: 7 -> train loss: 6.778079, val loss: 7.676429	 time: 74.60s
+	current model saved!
+epoch: 8 -> train loss: 6.565745, val loss: 7.630679	 time: 74.73s
+	current model saved!
+epoch: 9 -> train loss: 6.346962, val loss: 7.611465	 time: 73.02s
+	current model saved!
+epoch: 10 -> train loss: 6.157311, val loss: 7.631777	 time: 76.45s
 info -> training complete, loading model to calc perplexity.
 info -> ./RNN/2022101029_train_lm_perplexity.txt perplexities saved
 info -> ./RNN/2022101029_val_lm_perplexity.txt perplexities saved
