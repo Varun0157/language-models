@@ -24,6 +24,15 @@ def train(
         optimizer.zero_grad()
 
         output = model(context)
+
+        # Check if output and target have the same batch size
+        if output.size(0) != target.size(0):
+            # Adjust output to match target size
+            if output.size(0) < target.size(0):
+                target = target[: output.size(0)]
+            else:
+                output = output[: target.size(0)]
+
         loss = criterion(output, target)
         loss.backward()
         optimizer.step()
@@ -50,6 +59,13 @@ def evaluate(
             context, target = context.to(device), target.to(device)
 
             output = model(context)
+            if output.size(0) != target.size(0):
+                # Adjust output to match target size
+                if output.size(0) < target.size(0):
+                    target = target[: output.size(0)]
+                else:
+                    output = output[: target.size(0)]
+
             loss = criterion(
                 output, target
             )  # total loss of the batch, that's why reduction="sum"
@@ -75,12 +91,19 @@ def calculate_nll(
 
             # each of these are (batch_size, item)
             output = model(context)
+            if output.size(0) != target.size(0):
+                # Adjust output to match target size
+                if output.size(0) < target.size(0):
+                    target = target[: output.size(0)]
+                else:
+                    output = output[: target.size(0)]
+
             loss = torch.nn.NLLLoss(reduction="none")(output, target)
-            # todo: the default reduction in NLLLoss is mean, but check fi we should add and divide instead
+            num_sentences = len(loss)
 
             # append the perplexities one by one
             sentence_perplexities.extend(loss.cpu().numpy().tolist())
-            sentences.extend(batch_sentences)
+            sentences.extend(batch_sentences[:num_sentences])
 
     return sentence_perplexities, sentences
 

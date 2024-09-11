@@ -1,0 +1,33 @@
+model_type:  NNLM
+info -> data prepared!
+info -> using device: cuda
+info -> dropout rate:  0.1
+info -> criterion:  <class 'torch.nn.modules.loss.NLLLoss'>
+info -> optimizer:  <class 'torch.optim.sgd.SGD'>
+info -> epochs:  10
+info -> beginning training
+
+epoch: 1 -> train loss: 6.436150, val loss: 5.997691	 time: 97.65s
+	current model saved!
+epoch: 2 -> train loss: 5.859530, val loss: 5.748961	 time: 95.28s
+	current model saved!
+epoch: 3 -> train loss: 5.656279, val loss: 5.616869	 time: 85.81s
+	current model saved!
+epoch: 4 -> train loss: 5.524124, val loss: 5.531851	 time: 88.75s
+	current model saved!
+epoch: 5 -> train loss: 5.423070, val loss: 5.466208	 time: 87.19s
+	current model saved!
+epoch: 6 -> train loss: 5.338104, val loss: 5.417299	 time: 87.86s
+	current model saved!
+epoch: 7 -> train loss: 5.264190, val loss: 5.376589	 time: 88.29s
+	current model saved!
+epoch: 8 -> train loss: 5.198363, val loss: 5.344404	 time: 89.31s
+	current model saved!
+epoch: 9 -> train loss: 5.135994, val loss: 5.318033	 time: 89.12s
+	current model saved!
+epoch: 10 -> train loss: 5.079755, val loss: 5.294244	 time: 89.99s
+	current model saved!
+info -> training complete, loading model to calc perplexity.
+info -> ./NNLM/2022101029_train_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_val_lm_perplexity.txt perplexities saved
+info -> ./NNLM/2022101029_test_lm_perplexity.txt perplexities saved

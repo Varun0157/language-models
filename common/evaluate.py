@@ -1,8 +1,11 @@
 import os
+import time
 
 import torch
 from torch.utils.data import DataLoader
 from torch.optim.adam import Adam
+from torch.optim.sgd import SGD
+from torch.optim.rmsprop import RMSprop
 
 from NNLM.model import NeuralNetworkLanguageModel
 from RNN.model import RecurrentNeuralNetwork
@@ -56,7 +59,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.5
+    dropout_rate = 0.1
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
@@ -67,6 +70,7 @@ def test_model(model_type: str, path_dir: str) -> None:
                 embedding_dim=embedding_dim,
                 device=device,
             ).to(device)
+            lr = 1e-3
         case "RNN":
             model = RecurrentNeuralNetwork(
                 vocab_len,
@@ -74,23 +78,21 @@ def test_model(model_type: str, path_dir: str) -> None:
                 embedding_dim=embedding_dim,
                 device=device,
             ).to(device)
+            lr = 1e-3
         case "Transformer":
             model = TransformerModel(
                 vocab_size=vocab_len,
                 dropout_rate=dropout_rate,
                 embed_dim=embedding_dim,
                 device=device,
-                num_layers=2,
-                num_heads=6,
             ).to(device)
+            lr = 1e-3
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
 
     criterion = torch.nn.NLLLoss(reduction="sum")
     print("info -> criterion: ", type(criterion))
-    optimizer = Adam(
-        model.parameters(), weight_decay=1e-5
-    )  # todo: learning rate is a hyper-param here
+    optimizer = RMSprop(model.parameters(), weight_decay=1e-5, lr=lr)
     print("info -> optimizer: ", type(optimizer))
 
     epochs = 10
@@ -100,11 +102,15 @@ def test_model(model_type: str, path_dir: str) -> None:
 
     print("info -> beginning training\n")
     for epoch in range(epochs):
+        start_time = time.time()
+
         train_loss = train(model, train_loader, optimizer, criterion, device)
         val_loss = evaluate(model, val_loader, criterion, device)
 
+        elapsed_time = time.time() - start_time
+
         print(
-            f"epoch: {epoch + 1} -> train loss: {train_loss:.5f}, val loss: {val_loss:.5f}"
+            f"epoch: {epoch + 1} -> train loss: {train_loss:.6f}, val loss: {val_loss:.6f}\t time: {elapsed_time:.2f}s"
         )
 
         if val_loss > best_val_loss:
@@ -127,4 +133,4 @@ def test_model(model_type: str, path_dir: str) -> None:
         file_paths,
     ):
         set_perplexity(model, loader, device, file_name)
-        print(f"info -> {file_name} perplexities saved")
+        print(f"info -> {file_name}\tperplexities saved")

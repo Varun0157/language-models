@@ -25,6 +25,11 @@ def _clean(sentence: str) -> str:
     for ch in "\"”—“'’‘" + PUNCTUATION:  # removed - for instances like well-known
         sentence = sentence.replace(ch, " ")
 
+    # remove all words that contain any numbers
+    sentence = " ".join(
+        [word for word in sentence.split() if not any(char.isdigit() for char in word)]
+    )
+
     return sentence
 
 
@@ -41,12 +46,15 @@ def _tokenize(text: str, model_type: str) -> List[List[str]]:
     for sentence in tokenized_sentences:
         assert all([len(word) > 0 for word in sentence]), "empty word found"
 
-        if model_type == "NNLM" or model_type == "Transformer":
+        if model_type == "NNLM":
             for i in range(len(sentence) - 5):
                 tokenized_corpus.append(sentence[i : i + 6])
         elif model_type in ["RNN", "Transformer"]:
-            if len(sentence) <= 5:
+            MIN_SENTENCE_LENGTH = 2
+            if len(sentence) < MIN_SENTENCE_LENGTH:
                 continue
+            # for i in range(MIN_SENTENCE_LENGTH, len(sentence) + 1):
+            #     tokenized_corpus.append(sentence[:i])
             tokenized_corpus.append(sentence)
         else:
             raise ValueError(f"[_tokenize] model_type: {model_type} not recognized")
