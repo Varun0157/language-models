@@ -46,7 +46,7 @@ def _tokenize(text: str, model_type: str) -> List[List[str]]:
     for sentence in tokenized_sentences:
         assert all([len(word) > 0 for word in sentence]), "empty word found"
 
-        if model_type == "NNLM" or model_type == "RNN":
+        if model_type == "NNLM":
             for i in range(len(sentence) - 5):
                 tokenized_corpus.append(sentence[i : i + 6])
         elif model_type in ["RNN", "Transformer"]:

@@ -1,0 +1,2 @@
+- the processing code is 5-gram for RNN not full-sentence. Explain that it is a simple if-statement change. 
+- 
