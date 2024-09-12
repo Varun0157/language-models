@@ -59,7 +59,7 @@ def test_model(model_type: str, path_dir: str) -> None:
         test_dataset, batch_size=BATCH_SIZE, collate_fn=ModelDataset.collate_fn
     )
 
-    dropout_rate = 0.1
+    dropout_rate = 0.2
     print("info -> dropout rate: ", dropout_rate)
 
     match model_type:
