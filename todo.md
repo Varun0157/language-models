@@ -1,3 +1,3 @@
-- move data.py out, make it accessible to all the models 
+- use some official logger instead of printing 
+- separate training and evaluating 
 - experiment with GLoVe models with larger token sizes. 
-- 
