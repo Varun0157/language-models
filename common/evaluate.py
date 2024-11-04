@@ -62,30 +62,21 @@ def test_model(model_type: str, path_dir: str) -> None:
     dropout_rate = 0.2
     print("info -> dropout rate: ", dropout_rate)
 
+    model_args = {
+        "vocab_size": vocab_len,
+        "embedding_dim": embedding_dim,
+        "dropout_rate": dropout_rate,
+        "device": device,
+    }
     match model_type:
         case "NNLM":
-            model = NeuralNetworkLanguageModel(
-                vocab_len,
-                dropout_rate=dropout_rate,
-                embedding_dim=embedding_dim,
-                device=device,
-            ).to(device)
+            model = NeuralNetworkLanguageModel(**model_args).to(device)
             lr = 1e-3
         case "RNN":
-            model = RecurrentNeuralNetwork(
-                vocab_len,
-                dropout_rate=dropout_rate,
-                embedding_dim=embedding_dim,
-                device=device,
-            ).to(device)
+            model = RecurrentNeuralNetwork(**model_args).to(device)
             lr = 1e-3
         case "Transformer":
-            model = TransformerModel(
-                vocab_size=vocab_len,
-                dropout_rate=dropout_rate,
-                embed_dim=embedding_dim,
-                device=device,
-            ).to(device)
+            model = TransformerModel(**model_args).to(device)
             lr = 1e-3
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
