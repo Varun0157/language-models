@@ -43,7 +43,7 @@ class TransformerModel(nn.Module):
         vocab_size,
         dropout_rate: float,
         device: torch.device,
-        embed_dim=300,
+        embedding_dim=300,
         num_layers=2,
         num_heads=6,
     ):
@@ -51,11 +51,11 @@ class TransformerModel(nn.Module):
         self.device = device
 
         self.pos_encoder = PositionalEncoding(
-            max_len=MAX_SEQUENCE_LENGTH, d_model=embed_dim
+            max_len=MAX_SEQUENCE_LENGTH, d_model=embedding_dim
         )
 
         self.decoder_layer = nn.TransformerDecoderLayer(
-            d_model=embed_dim,
+            d_model=embedding_dim,
             nhead=num_heads,
             batch_first=True,
             dropout=0.4,
@@ -65,7 +65,7 @@ class TransformerModel(nn.Module):
             num_layers=num_layers,
         )
 
-        self.linear = nn.Linear(embed_dim, vocab_size)
+        self.linear = nn.Linear(embedding_dim, vocab_size)
         self.dropout = nn.Dropout(dropout_rate)
 
         self.softmax = nn.LogSoftmax(dim=1)
