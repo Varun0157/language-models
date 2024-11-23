@@ -1,3 +1,7 @@
-- use some official logger instead of printing 
-- separate training and evaluating 
-- experiment with GLoVe models with larger token sizes. 
+- complete refactor
+  - [ ] one src dir 
+  - [ ] put all models in a separate dir as individual files, not individual directories
+  - [ ] separate train and test files
+  - [ ] choose a better name for the perplexity files 
+- [ ] use some official logger instead of printing 
+- [ ] more documentation in the Readme, type of embeddings etc. 
