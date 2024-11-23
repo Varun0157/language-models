@@ -12,10 +12,6 @@ from torch.nn.utils.rnn import pad_sequence
 from torchtext.vocab import FastText
 
 
-UNKNOWN: str = "unk"
-MIN_SENTENCE_LENGTH = 2
-
-
 ### tokenization ###
 def _clean(sentence: str) -> str:
     sentence = sentence.lower().strip()
@@ -31,7 +27,9 @@ def _clean(sentence: str) -> str:
     return sentence
 
 
-def _tokenize(text: str, model_type: str, limit_len: bool = True) -> List[List[str]]:
+def _tokenize(
+    text: str, model_type: str, limit_len: int | None = None
+) -> List[List[str]]:
     nltk.download("punkt")
 
     sentences = sent_tokenize(text)
@@ -41,13 +39,13 @@ def _tokenize(text: str, model_type: str, limit_len: bool = True) -> List[List[s
     for sentence in tokenized_sentences:
         assert all([len(word) > 0 for word in sentence]), "empty word found"
 
-        if limit_len or model_type == "NNLM":
-            for i in range(len(sentence) - 5):
-                tokenized_corpus.append(sentence[i : i + 6])
+        if limit_len is not None or model_type == "NNLM":
+            if limit_len is None:
+                raise ValueError("limit_len must be provided for NNLM")
+            for i in range(len(sentence) - limit_len):
+                tokenized_corpus.append(sentence[i : i + limit_len + 1])
         elif model_type in ["RNN", "Transformer"]:
-            if len(sentence) < MIN_SENTENCE_LENGTH:
-                continue
-            for i in range(MIN_SENTENCE_LENGTH, len(sentence) + 1):
+            for i in range(2, len(sentence) + 1):
                 tokenized_corpus.append(sentence[:i])
         else:
             raise ValueError(f"[_tokenize] model_type: {model_type} not recognized")
@@ -94,7 +92,10 @@ class ModelDataset(Dataset):
         corpus: List[List[str]],
         vocab: List[str],
         embeddings: torch.Tensor,
+        unknown: str = "unk",
     ) -> None:
+        self.UNKNOWN = unknown
+
         self.corpus: List[List[str]] = corpus
         self.vocab: Dict[str, int] = {word: idx for idx, word in enumerate(vocab)}
         self.embeddings: torch.Tensor = embeddings
@@ -108,12 +109,12 @@ class ModelDataset(Dataset):
 
         input_data = sentence[:-1]
         context_indices = [
-            self.vocab.get(word, self.vocab[UNKNOWN]) for word in input_data
+            self.vocab.get(word, self.vocab[self.UNKNOWN]) for word in input_data
         ]
         context = torch.stack([self.embeddings[idx] for idx in context_indices])
 
         target = sentence[-1]
-        target_index = self.vocab.get(target, self.vocab[UNKNOWN])
+        target_index = self.vocab.get(target, self.vocab[self.UNKNOWN])
 
         sentence_data = " ".join(sentence)
         return context, target_index, sentence_data
@@ -127,8 +128,8 @@ class ModelDataset(Dataset):
 
 
 ### embedding ###
-def build_vocab(tokenized_corpus: List[List[str]]) -> List[str]:
-    return [UNKNOWN] + list(
+def build_vocab(tokenized_corpus: List[List[str]], unknown: str) -> List[str]:
+    return [unknown] + list(
         set(word for sentence in tokenized_corpus for word in sentence)
     )
 
@@ -152,10 +153,12 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
 def prepare_data(
     file_path: str, model_type: str
 ) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
+    UNKNOWN = "unk"
+
     corpus = get_corpus(file_path, model_type)
     train_set, val_set, test_set = split_corpus(corpus)
 
-    vocab = build_vocab(train_set)
+    vocab = build_vocab(train_set, UNKNOWN)
     trai_embed = get_embeddings(vocab)
 
     return (
