@@ -1,7 +1,7 @@
 - complete refactor
-  - [ ] separate train and test files
+  - [x] separate train and test files
   - [ ] choose a better name for the perplexity files 
-- [ ] use some official logger instead of printing 
+- [x] use some official logger instead of printing 
 - [ ] more documentation in the Readme, type of embeddings etc.
 - [ ] create a main that takes cli args
 - [ ] remove deprecation warnings or move to GLoVe

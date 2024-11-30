@@ -1,21 +1,16 @@
+import os
 import logging
-import time
 from typing import Any
 
 import torch
 from torch.utils.data import DataLoader
 
+from src.common.loops import calculate_nll, save_perplexities
+from src.common.train import log_choices
+from src.common.processing import get_dataloaders
 from src.models.nnlm import NeuralNetworkLanguageModel
 from src.models.rnn import RecurrentNeuralNetwork
 from src.models.transformer import TransformerModel
-
-from src.common.processing import get_dataloaders
-from src.common.train import (
-    save_perplexities,
-    train,
-    evaluate,
-    calculate_nll,
-)
 
 
 def set_perplexity(
@@ -31,11 +26,6 @@ def set_perplexity(
         sentences
     ), "[set_perplexity] nll losses should be same length as sentences"
     save_perplexities(nll_losses, sentences, file_name)
-
-
-def log_choices(**kwargs) -> None:
-    for arg, val in kwargs.items():
-        logging.info(f"{arg}: {val}")
 
 
 def test_model(
@@ -89,33 +79,9 @@ def test_model(
             model = TransformerModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
-    optim = optim(model.parameters(), lr=lr)
 
-    best_val_loss = float("inf")
-    best_model_path = path_dir + "/best_model.pth"
-
-    logging.info("beginning training")
-    for epoch in range(epochs):
-        start_time = time.time()
-
-        train_loss = train(model, train_loader, optim, criterion, device)
-        val_loss = evaluate(model, val_loader, criterion, device)
-
-        elapsed_time = time.time() - start_time
-
-        logging.info(
-            f"epoch: {epoch + 1} -> train loss: {train_loss:.6f}, val loss: {val_loss:.6f}\t time: {elapsed_time:.2f}s"
-        )
-
-        if val_loss > best_val_loss:
-            continue
-
-        best_val_loss = val_loss
-        torch.save(model.state_dict(), best_model_path)
-        logging.info("\tcurrent model saved!")
-
-    logging.info("training complete, loading model to calc perplexity.")
-    model.load_state_dict(torch.load(best_model_path, weights_only=True))
+    model_path = os.path.join(path_dir, f"{model_type}.pth")
+    model.load_state_dict(torch.load(model_path))
 
     file_paths = [
         (path_dir + "/2022101029_" + name + "_lm_perplexity.txt")

@@ -1,116 +1,101 @@
-from typing import List, Tuple
+import logging
+import os
+import time
+from typing import Any
 
-import numpy as np
 import torch
-import torch.utils.data
-import torch.optim
+from torch.utils.data import DataLoader
+
+from src.models.nnlm import NeuralNetworkLanguageModel
+from src.models.rnn import RecurrentNeuralNetwork
+from src.models.transformer import TransformerModel
+
+from src.common.processing import get_dataloaders
+from src.common.loops import (
+    save_perplexities,
+    train,
+    evaluate,
+    calculate_nll,
+)
 
 
-def train(
-    model: torch.nn.Module,
-    train_loader: torch.utils.data.DataLoader,
-    optimizer: torch.optim.Optimizer,  # type: ignore
-    criterion: torch.nn.Module,
-    device: torch.device,
-) -> float:
-    num_items: int = len(train_loader.dataset)  # type: ignore
-    assert num_items > 0, "[train] training data must be present"
-    model.train()
-
-    total_loss = 0
-    for context, target, _ in train_loader:
-        context, target = context.to(device), target.to(device)
-        optimizer.zero_grad()
-
-        output = model(context)
-
-        # Check if output and target have the same batch size
-        if output.size(0) != target.size(0):
-            # Adjust output to match target size
-            if output.size(0) < target.size(0):
-                target = target[: output.size(0)]
-            else:
-                output = output[: target.size(0)]
-
-        loss = criterion(output, target)
-        loss.backward()
-        optimizer.step()
-
-        total_loss += loss.item()
-
-    return total_loss / num_items
+def log_choices(**kwargs) -> None:
+    for arg, val in kwargs.items():
+        logging.info(f"{arg}: {val}")
 
 
-def evaluate(
-    model: torch.nn.Module,
-    test_loader: torch.utils.data.DataLoader,
-    criterion: torch.nn.Module,
-    device: torch.device,
-) -> float:
-    num_items: int = len(test_loader.dataset)  # type: ignore
-    assert num_items > 0, "[evaluate] testing data must be present"
-
-    model.eval()
-
-    total_loss = 0
-    with torch.no_grad():
-        for context, target, _ in test_loader:
-            context, target = context.to(device), target.to(device)
-
-            output = model(context)
-            if output.size(0) != target.size(0):
-                # Adjust output to match target size
-                if output.size(0) < target.size(0):
-                    target = target[: output.size(0)]
-                else:
-                    output = output[: target.size(0)]
-
-            loss = criterion(
-                output, target
-            )  # total loss of the batch, that's why reduction="sum"
-
-            total_loss += loss.item()
-
-    return total_loss / num_items
-
-
-def calculate_nll(
-    model: torch.nn.Module,
-    loader: torch.utils.data.DataLoader,
-    device: torch.device,
-) -> Tuple[List[float], List[str]]:
-    model.eval()
-
-    sentence_perplexities, sentences = [], []
-    with torch.no_grad():
-        for context, target, batch_sentences in loader:
-            context, target = context.to(device), target.to(device)
-
-            # each of these are (batch_size, item)
-            output = model(context)
-            if output.size(0) != target.size(0):
-                # Adjust output to match target size
-                if output.size(0) < target.size(0):
-                    target = target[: output.size(0)]
-                else:
-                    output = output[: target.size(0)]
-
-            loss = torch.nn.NLLLoss(reduction="none")(output, target)
-            num_sentences = len(loss)
-
-            # append the perplexities one by one
-            sentence_perplexities.extend(loss.cpu().numpy().tolist())
-            sentences.extend(batch_sentences[:num_sentences])
-
-    return sentence_perplexities, sentences
-
-
-def save_perplexities(
-    nll_losses: List[float], corpus: List[str], file_name: str
+def train_model(
+    model_type: str,
+    path_dir: str,
+    data_path: str,
+    criterion: torch.nn.NLLLoss,
+    optim: Any,  # todo: fix this type
+    epochs: int = 10,
+    batch_size: int = 32,
+    device: torch.device = torch.device("cpu"),
+    dropout_rate: float = 0.2,
+    lr: float = 1e-3,
+    sent_len: int | None = None,
 ) -> None:
-    with open(file_name, "w") as f:
-        for sentence, nll_loss in zip(corpus, nll_losses):
-            f.write(f"{sentence}\t\t\t\t{np.exp(nll_loss)}\n")
+    log_choices(
+        model_type=model_type,
+        path_dir=path_dir,
+        data_path=data_path,
+        criterion=type(criterion),
+        optim=optim,
+        epochs=epochs,
+        batch_size=batch_size,
+        device=device,
+        dropout_rate=dropout_rate,
+        lr=lr,
+        sent_len=sent_len,
+    )
 
-        average_perplexity = np.exp(sum(nll_losses) / len(nll_losses))
-        f.write(f"\naverage perplexity: {average_perplexity}")
+    train_loader, val_loader, test_loader, metadata = get_dataloaders(
+        data_path, model_type, batch_size, sent_len
+    )
+    logging.info(
+        f"data prepared: vocab_size {metadata['vocab_size']} emb_dim {metadata['embedding_dim']}"
+    )
+
+    model_args = {
+        "vocab_size": metadata["vocab_size"],
+        "embedding_dim": metadata["embedding_dim"],
+        "dropout_rate": dropout_rate,
+        "device": device,
+    }
+    match model_type:
+        case "NNLM":
+            assert sent_len is not None, "[test_model] limit_len should not be None"
+            model_args["sent_len"] = sent_len
+            model = NeuralNetworkLanguageModel(**model_args).to(device)
+        case "RNN":
+            model = RecurrentNeuralNetwork(**model_args).to(device)
+        case "Transformer":
+            model = TransformerModel(**model_args).to(device)
+        case _:
+            raise ValueError(f"[test_model] model type {model_type} not recognized")
+    optim = optim(model.parameters(), lr=lr)
+
+    best_val_loss = float("inf")
+    best_model_path = os.path.join(path_dir, f"{model_type}.pth")
+
+    logging.info("beginning training")
+    for epoch in range(epochs):
+        start_time = time.time()
+
+        train_loss = train(model, train_loader, optim, criterion, device)
+        val_loss = evaluate(model, val_loader, criterion, device)
+
+        elapsed_time = time.time() - start_time
+
+        logging.info(
+            f"epoch: {epoch + 1} -> train loss: {train_loss:.6f}, val loss: {val_loss:.6f}\t time: {elapsed_time:.2f}s"
+        )
+
+        if val_loss > best_val_loss:
+            continue
+
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), best_model_path)
+        logging.info("\tcurrent model saved!")
