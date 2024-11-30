@@ -1,12 +1,12 @@
 import random
-from typing import List, Tuple, Dict
+from typing import Any, List, Tuple, Dict
 from string import punctuation as PUNCTUATION
 
 import nltk
 from nltk.tokenize import word_tokenize, sent_tokenize
 
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
 from torchtext.vocab import FastText
@@ -53,12 +53,14 @@ def _tokenize(
     return tokenized_corpus
 
 
-def get_corpus(file_path: str, model_type: str) -> List[List[str]]:
+def get_corpus(
+    file_path: str, model_type: str, limit_len: int | None = None
+) -> List[List[str]]:
     with open(file_path, "r") as f:
         text = f.read()
     # todo: clean the data -> remove chapter titles, unnecessary numbers if any.
     text = text[text.find("In a splendid") :]
-    return _tokenize(text, model_type)
+    return _tokenize(text, model_type, limit_len=limit_len)
 
 
 def split_corpus(
@@ -150,19 +152,35 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
     return embeddings
 
 
-def prepare_data(
-    file_path: str, model_type: str
-) -> Tuple[ModelDataset, ModelDataset, ModelDataset]:
+def get_dataloaders(
+    file_path: str, model_type: str, batch_size: int, limit_len: int | None = None
+) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, Any]]:
     UNKNOWN = "unk"
 
-    corpus = get_corpus(file_path, model_type)
+    corpus = get_corpus(file_path, model_type, limit_len=limit_len)
     train_set, val_set, test_set = split_corpus(corpus)
 
     vocab = build_vocab(train_set, UNKNOWN)
     trai_embed = get_embeddings(vocab)
 
+    train_dataset = ModelDataset(train_set, vocab, trai_embed, UNKNOWN)
+    val_dataset = ModelDataset(val_set, vocab, trai_embed, UNKNOWN)
+    test_dataset = ModelDataset(test_set, vocab, trai_embed, UNKNOWN)
+
+    metadata = {
+        "vocab_size": len(vocab),
+        "embedding_dim": trai_embed.size(1),
+    }
+
     return (
-        ModelDataset(train_set, vocab, trai_embed),
-        ModelDataset(val_set, vocab, trai_embed),
-        ModelDataset(test_set, vocab, trai_embed),
+        DataLoader(
+            train_dataset, batch_size=batch_size, collate_fn=ModelDataset.collate_fn
+        ),
+        DataLoader(
+            val_dataset, batch_size=batch_size, collate_fn=ModelDataset.collate_fn
+        ),
+        DataLoader(
+            test_dataset, batch_size=batch_size, collate_fn=ModelDataset.collate_fn
+        ),
+        metadata,
     )

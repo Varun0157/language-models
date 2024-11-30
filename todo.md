@@ -5,3 +5,4 @@
 - [ ] more documentation in the Readme, type of embeddings etc.
 - [ ] create a main that takes cli args
 - [ ] remove deprecation warnings or move to GLoVe
+- [ ] consider using nn.Sequential for simplicity in the models 
