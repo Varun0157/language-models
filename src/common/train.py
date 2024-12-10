@@ -4,7 +4,6 @@ import time
 from typing import Any
 
 import torch
-from torch.utils.data import DataLoader
 
 from src.models.nnlm import NeuralNetworkLanguageModel
 from src.models.rnn import RecurrentNeuralNetwork
@@ -12,10 +11,8 @@ from src.models.transformer import TransformerModel
 
 from src.common.processing import get_dataloaders
 from src.common.loops import (
-    save_perplexities,
     train,
     evaluate,
-    calculate_nll,
 )
 
 
