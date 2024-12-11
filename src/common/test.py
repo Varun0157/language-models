@@ -103,4 +103,4 @@ def test_model(
         file_paths,
     ):
         set_perplexity(model, loader, device, file_name)
-        logging.info(f"{file_name}\tperplexities saved")
+        logging.info(f"{file_name} saved")
