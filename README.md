@@ -5,7 +5,7 @@ An implementation of some basic next word prediction language models - currently
 
 ## installation
 The env files are available in [the data directory](./data/). 
-If you want to resolve the depdencies yourself, refer to [the env file created from history](./data/envs-hist.yml), else, attempt the installation as below. 
+If you want to resolve the dependencies yourself, refer to [the env file created from history](./data/envs-hist.yml), else, attempt the installation as below. 
 
 ```sh
 conda env create -f data/envs-all.yml
@@ -20,7 +20,7 @@ The main module allows for the following options:
 - `epochs`
 - `sent_len` specifies the length of every sample, predicting the last word based on the beginning of the sample. If it is not specified, we predict the last word of an arbitrary length sentence based on the beginning. Note that for the Neural Network Language Model, we have to specify some fixed length. 
 
-Currently, a run consists of a train and a test run, but the two calls are completely de-coupled and may be separated to two calls later. 
+**Currently, a run consists of a train and a test run, but the two calls are completely de-coupled and may be separated to two calls later.**
 
 ```sh
 python -m src.main <model>
@@ -35,11 +35,11 @@ python -m src.main tra-dec epochs=10 batch_size=64
 ```
 
 ## model details 
+For additional details and hyperparameter analysis and tuning, check out [the report](./docs/report.pdf). 
+
 In the assignment, `torchtext` was used for the word embeddings. The [report](./docs/report.pdf) was written with these embeddings. 
 
 Since it is now deprecated, the models now use `glove` embeddings. 
-
-For additional details and hyperparameter analysis and tuning, check out [the report](./docs/report.pdf). 
 
 ### Neural Network Language Model ("nnlm")
 ![nnlm](./docs/schema/nnlm.png)
