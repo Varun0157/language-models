@@ -45,20 +45,16 @@ if __name__ == "__main__":
         choices=[m.value for m in ModelType],
         help="model type to use",
     )
+    parser.add_argument("--batch_size", type=int, default=4096, help="batch size")
+    parser.add_argument("--epochs", type=int, default=2, help="number of epochs")
     parser.add_argument(
-        "--batch-size", type=int, default=32, help="Batch size (default: 32)"
-    )
-    parser.add_argument(
-        "--epochs", type=int, default=10, help="Number of epochs (default: 10)"
-    )
-    parser.add_argument(
-        "--sent-len",
+        "--sent_len",
         type=int,
         default=None,
-        help="Limit sentence length (default: None)",
+        help="limit sentence length (default: None)",
     )
 
     args = parser.parse_args()
 
     logging.basicConfig(level=logging.INFO, format=get_logging_format())
-    main(ModelType(args.model), args.batch_size, args.epochs)
+    main(ModelType(args.model), args.batch_size, args.epochs, args.sent_len)

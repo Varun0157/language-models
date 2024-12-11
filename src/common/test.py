@@ -4,8 +4,9 @@ from typing import Any
 
 import torch
 from torch.utils.data import DataLoader
+import numpy as np
 
-from src.common.loops import calculate_nll, save_perplexities
+from src.common.loops import calculate_nll
 from src.common.train import log_choices
 from src.common.processing import get_dataloaders
 from src.models.nnlm import NeuralNetworkLanguageModel
@@ -20,13 +21,17 @@ def set_perplexity(
     device: torch.device,
     file_name: str,
 ) -> None:
-    # save perplexities for test data
-    # todo: can probably make this a single call
     nll_losses, sentences = calculate_nll(model, loader, device)
     assert len(nll_losses) == len(
         sentences
     ), "[set_perplexity] nll losses should be same length as sentences"
-    save_perplexities(nll_losses, sentences, file_name)
+
+    with open(file_name, "w") as f:
+        for sentence, nll_loss in zip(sentences, nll_losses):
+            f.write(f"{sentence}\t\t\t\t{np.exp(nll_loss)}\n")
+
+        average_perplexity = np.exp(sum(nll_losses) / len(nll_losses))
+        f.write(f"\naverage perplexity: {average_perplexity}")
 
 
 def test_model(

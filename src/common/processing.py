@@ -1,3 +1,4 @@
+import os
 from typing import Any, List, Tuple, Dict
 from string import punctuation as PUNCTUATION
 
@@ -7,8 +8,6 @@ from nltk.tokenize import word_tokenize, sent_tokenize
 import torch
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
-
-from torchtext.vocab import FastText
 
 from src.utils import ModelType
 
@@ -138,18 +137,32 @@ def build_vocab(tokenized_corpus: List[List[str]], unknown: str) -> List[str]:
     )
 
 
-def get_embeddings(vocab: List[str]) -> torch.Tensor:
+def get_embeddings(
+    vocab: List[str],
+    glove_path: str = os.path.join("data", "glove", "glove.6B.300d.txt"),
+) -> torch.Tensor:
+    """
+    note: the models currently assume 300d
+    """
+
     assert len(vocab) > 0, "vocab should not be empty"
 
-    fast_text = FastText(language="en")
+    glove_dict = {}
+    with open(glove_path, "r", encoding="utf-8") as f:
+        for line in f:
+            values = line.split()
+            word = values[0]
+            vector = torch.FloatTensor([float(val) for val in values[1:]])
+            glove_dict[word] = vector
 
-    emb_dim: int = (
-        fast_text.dim if type(fast_text.dim) == int else len(fast_text[vocab[0]])
-    )
+    all_embeddings = torch.stack(list(glove_dict.values()))
+    average_embedding = torch.mean(all_embeddings, dim=0)
+
+    emb_dim = len(next(iter(glove_dict.values())))
     embeddings = torch.zeros(len(vocab), emb_dim)
 
     for idx, word in enumerate(vocab):
-        embeddings[idx] = torch.from_numpy(fast_text[word].numpy())
+        embeddings[idx] = glove_dict.get(word, average_embedding)
 
     return embeddings
 

@@ -2,5 +2,6 @@
 .vector_cache/
 **/*.pth
 results/*
+data/glove/*
 
 !**/.gitkeep

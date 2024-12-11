@@ -1,6 +1,5 @@
 from typing import List, Tuple
 
-import numpy as np
 import torch
 import torch.utils.data
 import torch.optim
@@ -103,14 +102,3 @@ def calculate_nll(
             sentences.extend(batch_sentences[:num_sentences])
 
     return sentence_perplexities, sentences
-
-
-def save_perplexities(
-    nll_losses: List[float], corpus: List[str], file_name: str
-) -> None:
-    with open(file_name, "w") as f:
-        for sentence, nll_loss in zip(corpus, nll_losses):
-            f.write(f"{sentence}\t\t\t\t{np.exp(nll_loss)}\n")
-
-        average_perplexity = np.exp(sum(nll_losses) / len(nll_losses))
-        f.write(f"\naverage perplexity: {average_perplexity}")

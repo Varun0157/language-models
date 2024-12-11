@@ -9,6 +9,8 @@ If you want to resolve the depdencies yourself, refer to [the env file created f
 conda env create -f data/envs-all.yml
 ```
 
+In addition, download a 300 dim [glove model](https://nlp.stanford.edu/projects/glove/) and move it to [the data/glove directory](./data/glove/glove.6B.300d.txt). In [processing.py](./src/common/processing.py), the path is assumed to be "./data/glove/glove.6B.300d.txt". 
+
 ## running the models 
 The main module allows for the following options:
 - `model` specifies the model itself
@@ -21,10 +23,10 @@ python -m src.main <model>
 ```
 Optionally add `--batch_size`, `--epochs`, `--sent_len`. 
 
-Some additional data can be found [here](https://drive.google.com/drive/folders/1ksRhdfaXNlQeUQaZz2e52wWdB12NVzXU?usp=sharing). 
-
 ## model details 
-We use `torchtext` for the embeddings. The models themselves are defined as below. 
+In the assignment, `torchtext` was used for the word embeddings. The [report](./docs/report.pdf) was written with these embeddings. 
+
+Since it is now deprecated, the models now use `glove` embeddings. 
 
 For additional details and hyperparameter analysis and tuning, check out [the report](./docs/report.pdf). 
 
@@ -36,6 +38,3 @@ For additional details and hyperparameter analysis and tuning, check out [the re
 
 ### Transformer Decoder ("tra-dec")
 ![transformer](./docs/schema/transformer.png)
-
-## todo
-- [ ] move to GLoVe, think about the UNK as a result
