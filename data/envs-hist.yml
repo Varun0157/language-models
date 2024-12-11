@@ -5,10 +5,10 @@ channels:
 dependencies:
   - nltk
   - numpy
+  - python[version='<=3.11']
+  - torchtext
   - pytorch
-  - pytorch-cuda=12.1
+  - pytorch-cuda=12.4
   - torchaudio
   - torchvision
-  - torchtext
-  - python[version='<=3.11']
 prefix: /home/varun/miniconda3/envs/anlp-a1

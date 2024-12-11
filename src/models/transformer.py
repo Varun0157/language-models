@@ -44,7 +44,7 @@ class TransformerModel(nn.Module):
         device: torch.device,
         embedding_dim=300,
         num_layers=2,
-        num_heads=6,
+        num_heads=2,
     ):
         super(TransformerModel, self).__init__()
         self.device = device
@@ -53,14 +53,14 @@ class TransformerModel(nn.Module):
             max_len=MAX_SEQUENCE_LENGTH, d_model=embedding_dim
         )
 
-        self.decoder_layer = nn.TransformerDecoderLayer(
+        decoder_layer = nn.TransformerDecoderLayer(
             d_model=embedding_dim,
             nhead=num_heads,
             batch_first=True,
             dropout=0.4,
         )
         self.decoder = nn.TransformerDecoder(
-            decoder_layer=self.decoder_layer,
+            decoder_layer=decoder_layer,
             num_layers=num_layers,
         )
 

@@ -46,8 +46,11 @@ def _tokenize(
             for i in range(len(sentence) - limit_len):
                 tokenized_corpus.append(sentence[i : i + limit_len + 1])
         elif model_type in [ModelType.RNN, ModelType.Transformer]:
-            for i in range(2, len(sentence) + 1):
-                tokenized_corpus.append(sentence[:i])
+            if len(sentence) < 2:
+                continue
+            # for i in range(2, len(sentence) + 1):
+            #     tokenized_corpus.append(sentence[:i])
+            tokenized_corpus.append(sentence)
         else:
             raise ValueError(f"[_tokenize] model_type: {model_type} not recognized")
 

@@ -1,8 +1,4 @@
-- complete refactor
-  - [x] separate train and test files
-  - [x] choose a better name for the perplexity files 
-- [x] use some official logger instead of printing 
-- [ ] more documentation in the Readme, type of embeddings etc.
-- [ ] create a main that takes cli args
-- [ ] remove deprecation warnings or move to GLoVe
 - [ ] consider using nn.Sequential for simplicity in the models 
+- [ ] create a main that takes cli args
+- [ ] more documentation in the Readme, type of embeddings etc.
+- [ ] mvoe to GLoVe, think about the UNK as a result
