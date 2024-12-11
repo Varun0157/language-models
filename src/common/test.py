@@ -11,7 +11,7 @@ from src.common.processing import get_dataloaders
 from src.models.nnlm import NeuralNetworkLanguageModel
 from src.models.rnn import RecurrentNeuralNetwork
 from src.models.transformer import TransformerModel
-from src.utils import ModelType, get_model_path
+from src.utils import ModelType, get_model_path, get_res_path
 
 
 def set_perplexity(
@@ -73,13 +73,13 @@ def test_model(
         "device": device,
     }
     match model_type:
-        case "NNLM":
+        case ModelType.NNLM:
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
             model = NeuralNetworkLanguageModel(**model_args).to(device)
-        case "RNN":
+        case ModelType.RNN:
             model = RecurrentNeuralNetwork(**model_args).to(device)
-        case "Transformer":
+        case ModelType.Transformer:
             model = TransformerModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
@@ -87,8 +87,14 @@ def test_model(
     model_path = get_model_path(res_dir, model_type, sent_len)
     model.load_state_dict(torch.load(model_path, weights_only=True))
 
+    res_path = get_res_path(res_dir, model_type)
     file_paths = [
-        (os.path.join(res_dir, model_type, f"{sent_len}-perplexities-{name}.txt"))
+        (
+            os.path.join(
+                res_path,
+                f"{sent_len if sent_len is not None else 'full'}-perplexities-{name}.txt",
+            )
+        )
         for name in ("train", "val", "test")
     ]
 

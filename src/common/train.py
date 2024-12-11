@@ -65,13 +65,13 @@ def train_model(
         "device": device,
     }
     match model_type:
-        case "nnlm":
+        case ModelType.NNLM:
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
             model = NeuralNetworkLanguageModel(**model_args).to(device)
-        case "rnn":
+        case ModelType.RNN:
             model = RecurrentNeuralNetwork(**model_args).to(device)
-        case "transformer":
+        case ModelType.Transformer:
             model = TransformerModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
