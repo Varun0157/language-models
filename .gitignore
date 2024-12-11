@@ -1,5 +1,6 @@
 **/__pycache__
 .vector_cache/
 **/*.pth
+results/*
 
 !**/.gitkeep
