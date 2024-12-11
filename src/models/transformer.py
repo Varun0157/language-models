@@ -16,6 +16,7 @@ def generate_square_subsequent_mask(sz):
     return mask
 
 
+# ref: https://debuggercafe.com/text-generation-with-transformers/
 class PositionalEncoding(nn.Module):
     def __init__(self, max_len, d_model, dropout=0.1):
         super(PositionalEncoding, self).__init__()

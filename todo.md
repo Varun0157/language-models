@@ -1,4 +1,0 @@
-- [ ] consider using nn.Sequential for simplicity in the models 
-- [ ] create a main that takes cli args
-- [ ] more documentation in the Readme, type of embeddings etc.
-- [ ] mvoe to GLoVe, think about the UNK as a result
