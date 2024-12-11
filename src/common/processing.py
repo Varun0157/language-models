@@ -39,7 +39,7 @@ def _tokenize(
     for sentence in tokenized_sentences:
         assert all([len(word) > 0 for word in sentence]), "empty word found"
 
-        if limit_len is not None or model_type == ModelType.NNLM:
+        if limit_len is not None or model_type == ModelType.FFNNM:
             if limit_len is None:
                 raise ValueError("limit_len must be provided for NNLM")
             for i in range(len(sentence) - limit_len):

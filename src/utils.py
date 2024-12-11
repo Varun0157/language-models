@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class ModelType(Enum):
-    NNLM = "nnlm"
+    FFNNM = "ffnnm"
     LSTM = "lstm"
     Transformer = "tra-dec"
 

@@ -4,7 +4,7 @@ from typing import Any
 import torch
 from tqdm import tqdm
 
-from src.models.nnlm import NeuralNetworkLanguageModel
+from src.models.ffnnm import FeedForwardNeuralNetworkModel
 from src.models.rnn import SequentialModel
 from src.models.transformer import TransformerDecoderModel
 
@@ -65,10 +65,10 @@ def train_model(
         "device": device,
     }
     match model_type:
-        case ModelType.NNLM:
+        case ModelType.FFNNM:
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
-            model = NeuralNetworkLanguageModel(**model_args).to(device)
+            model = FeedForwardNeuralNetworkModel(**model_args).to(device)
         case ModelType.LSTM:
             model = SequentialModel(**model_args).to(device)
         case ModelType.Transformer:

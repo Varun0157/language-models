@@ -3,7 +3,7 @@ import torch.utils.data
 import torch.optim
 
 
-class NeuralNetworkLanguageModel(torch.nn.Module):
+class FeedForwardNeuralNetworkModel(torch.nn.Module):
     def __init__(
         self,
         vocab_size: int,
@@ -13,7 +13,7 @@ class NeuralNetworkLanguageModel(torch.nn.Module):
         sent_len: int = 5,
         hidden_dim: int = 300,
     ) -> None:
-        super(NeuralNetworkLanguageModel, self).__init__()
+        super(FeedForwardNeuralNetworkModel, self).__init__()
 
         self.layers = torch.nn.Sequential(
             torch.nn.Linear(embedding_dim * sent_len, hidden_dim, device=device),

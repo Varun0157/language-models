@@ -1,7 +1,7 @@
 # language-models
 *Assignment 1* of *Advanced Natural Language Processing* (IIIT-Hyderabad, Monsoon '24)
 
-An implementation of some basic next word prediction language models - currently consisting of a neural network language model, a sequential model (lstm), and a transformer decoder. 
+An implementation of some basic next word prediction language models - currently consisting of a feed forward neural network model, a sequential model (lstm), and a transformer decoder. 
 
 ## installation
 The env files are available in [the data directory](./data/). 
@@ -29,7 +29,7 @@ Optionally add `--batch_size`, `--epochs`, `--sent_len`.
 
 Some samples include:
 ```sh
-python -m src.main nnlm sent_len=5 epochs=10 batch_size=8192
+python -m src.main ffnnm sent_len=5 epochs=10 batch_size=8192
 python -m src.main lstm epochs=10 batch_size=4096
 python -m src.main tra-dec epochs=10 batch_size=64
 ```
@@ -41,8 +41,8 @@ In the assignment, `torchtext` was used for the word embeddings. The [report](./
 
 Since it is now deprecated, the models now use `glove` embeddings. 
 
-### Neural Network Language Model ("nnlm")
-![nnlm](./docs/schema/nnlm.png)
+### Feed Forward Neural Network Model ("ffnnm")
+![nnlm](./docs/schema/ffnnlm.png)
 
 ### Sequential Model ("lstm")
 ![lstm](./docs/schema/lstm.png)

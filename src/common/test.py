@@ -9,7 +9,7 @@ import numpy as np
 from src.common.loops import calculate_nll
 from src.common.train import log_choices
 from src.common.processing import get_dataloaders
-from src.models.nnlm import NeuralNetworkLanguageModel
+from src.models.ffnnm import FeedForwardNeuralNetworkModel
 from src.models.rnn import SequentialModel
 from src.models.transformer import TransformerDecoderModel
 from src.utils import ModelType, get_model_path, get_res_path
@@ -78,10 +78,10 @@ def test_model(
         "device": device,
     }
     match model_type:
-        case ModelType.NNLM:
+        case ModelType.FFNNM:
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
-            model = NeuralNetworkLanguageModel(**model_args).to(device)
+            model = FeedForwardNeuralNetworkModel(**model_args).to(device)
         case ModelType.LSTM:
             model = SequentialModel(**model_args).to(device)
         case ModelType.Transformer:
