@@ -4,7 +4,7 @@ from enum import Enum
 
 class ModelType(Enum):
     NNLM = "nnlm"
-    RNN = "rnn"
+    LSTM = "lstm"
     Transformer = "tra-dec"
 
 

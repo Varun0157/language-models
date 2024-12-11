@@ -44,7 +44,7 @@ def _tokenize(
                 raise ValueError("limit_len must be provided for NNLM")
             for i in range(len(sentence) - limit_len):
                 tokenized_corpus.append(sentence[i : i + limit_len + 1])
-        elif model_type in [ModelType.RNN, ModelType.Transformer]:
+        elif model_type in [ModelType.LSTM, ModelType.Transformer]:
             if len(sentence) < 2:
                 continue
             # for i in range(2, len(sentence) + 1):

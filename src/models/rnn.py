@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
-class RecurrentNeuralNetwork(nn.Module):
+class SequentialModel(nn.Module):
     def __init__(
         self,
         vocab_size: int,
@@ -12,7 +12,7 @@ class RecurrentNeuralNetwork(nn.Module):
         device: torch.device,
         hidden_dim: int = 300,
     ) -> None:
-        super(RecurrentNeuralNetwork, self).__init__()
+        super(SequentialModel, self).__init__()
         self.device = device
 
         self.lstm = nn.LSTM(

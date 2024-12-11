@@ -1,6 +1,8 @@
 # language-models
 *Assignment 1* of *Advanced Natural Language Processing* (IIIT-Hyderabad, Monsoon '24)
 
+An implementation of some basic next word prediction language models - currently consisting of a neural network language model, a sequential model (lstm), and a transformer decoder. 
+
 ## installation
 The env files are available in [the data directory](./data/). 
 If you want to resolve the depdencies yourself, refer to [the env file created from history](./data/envs-hist.yml), else, attempt the installation as below. 
@@ -18,10 +20,19 @@ The main module allows for the following options:
 - `epochs`
 - `sent_len` specifies the length of every sample, predicting the last word based on the beginning of the sample. If it is not specified, we predict the last word of an arbitrary length sentence based on the beginning. Note that for the Neural Network Language Model, we have to specify some fixed length. 
 
+Currently, a run consists of a train and a test run, but the two calls are completely de-coupled and may be separated to two calls later. 
+
 ```sh
 python -m src.main <model>
 ```
 Optionally add `--batch_size`, `--epochs`, `--sent_len`. 
+
+Some samples include:
+```sh
+python -m src.main nnlm sent_len=5 epochs=10 batch_size=8192
+python -m src.main lstm epochs=10 batch_size=4096
+python -m src.main tra-dec epochs=10 batch_size=64
+```
 
 ## model details 
 In the assignment, `torchtext` was used for the word embeddings. The [report](./docs/report.pdf) was written with these embeddings. 
@@ -33,8 +44,8 @@ For additional details and hyperparameter analysis and tuning, check out [the re
 ### Neural Network Language Model ("nnlm")
 ![nnlm](./docs/schema/nnlm.png)
 
-### Recurrent Neural Network ("rnn")
-![rnn](./docs/schema/rnn.png)
+### Sequential Model ("lstm")
+![lstm](./docs/schema/lstm.png)
 
-### Transformer Decoder ("tra-dec")
+### Transformer Decoder Model ("tra-dec")
 ![transformer](./docs/schema/transformer.png)

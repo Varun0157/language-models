@@ -5,8 +5,8 @@ import torch
 from tqdm import tqdm
 
 from src.models.nnlm import NeuralNetworkLanguageModel
-from src.models.rnn import RecurrentNeuralNetwork
-from src.models.transformer import TransformerModel
+from src.models.rnn import SequentialModel
+from src.models.transformer import TransformerDecoderModel
 
 from src.common.processing import get_dataloaders
 from src.common.loops import (
@@ -69,10 +69,10 @@ def train_model(
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
             model = NeuralNetworkLanguageModel(**model_args).to(device)
-        case ModelType.RNN:
-            model = RecurrentNeuralNetwork(**model_args).to(device)
+        case ModelType.LSTM:
+            model = SequentialModel(**model_args).to(device)
         case ModelType.Transformer:
-            model = TransformerModel(**model_args).to(device)
+            model = TransformerDecoderModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
     optim = optim(model.parameters(), lr=lr)

@@ -37,7 +37,7 @@ class PositionalEncoding(nn.Module):
         return self.dropout(x)
 
 
-class TransformerModel(nn.Module):
+class TransformerDecoderModel(nn.Module):
     def __init__(
         self,
         vocab_size,
@@ -47,7 +47,7 @@ class TransformerModel(nn.Module):
         num_layers=2,
         num_heads=2,
     ):
-        super(TransformerModel, self).__init__()
+        super(TransformerDecoderModel, self).__init__()
         self.device = device
 
         self.pos_encoder = PositionalEncoding(

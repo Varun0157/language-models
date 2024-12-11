@@ -10,8 +10,8 @@ from src.common.loops import calculate_nll
 from src.common.train import log_choices
 from src.common.processing import get_dataloaders
 from src.models.nnlm import NeuralNetworkLanguageModel
-from src.models.rnn import RecurrentNeuralNetwork
-from src.models.transformer import TransformerModel
+from src.models.rnn import SequentialModel
+from src.models.transformer import TransformerDecoderModel
 from src.utils import ModelType, get_model_path, get_res_path
 
 
@@ -82,10 +82,10 @@ def test_model(
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
             model = NeuralNetworkLanguageModel(**model_args).to(device)
-        case ModelType.RNN:
-            model = RecurrentNeuralNetwork(**model_args).to(device)
+        case ModelType.LSTM:
+            model = SequentialModel(**model_args).to(device)
         case ModelType.Transformer:
-            model = TransformerModel(**model_args).to(device)
+            model = TransformerDecoderModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
 
