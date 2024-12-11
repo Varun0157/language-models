@@ -11,6 +11,7 @@ from src.common.processing import get_dataloaders
 from src.models.nnlm import NeuralNetworkLanguageModel
 from src.models.rnn import RecurrentNeuralNetwork
 from src.models.transformer import TransformerModel
+from src.utils import ModelType, get_model_path
 
 
 def set_perplexity(
@@ -29,8 +30,8 @@ def set_perplexity(
 
 
 def test_model(
-    model_type: str,
-    path_dir: str,
+    model_type: ModelType,
+    res_dir: str,
     data_path: str,
     criterion: torch.nn.NLLLoss,
     optim: Any,  # todo: fix this type
@@ -43,7 +44,7 @@ def test_model(
 ) -> None:
     log_choices(
         model_type=model_type,
-        path_dir=path_dir,
+        res_dir=res_dir,
         data_path=data_path,
         criterion=type(criterion),
         optim=optim,
@@ -60,6 +61,9 @@ def test_model(
     )
     logging.info(
         f"data prepared: vocab_size {metadata['vocab_size']} emb_dim {metadata['embedding_dim']}"
+    )
+    logging.info(
+        f"train size: {len(train_loader.dataset)}, val size: {len(val_loader.dataset)}, test size: {len(test_loader.dataset)}"  # type: ignore
     )
 
     model_args = {
@@ -80,11 +84,11 @@ def test_model(
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
 
-    model_path = os.path.join(path_dir, f"{model_type}.pth")
-    model.load_state_dict(torch.load(model_path))
+    model_path = get_model_path(res_dir, model_type, sent_len)
+    model.load_state_dict(torch.load(model_path, weights_only=True))
 
     file_paths = [
-        (path_dir + "/2022101029_" + name + "_lm_perplexity.txt")
+        (os.path.join(res_dir, model_type, f"{sent_len}-perplexities-{name}.txt"))
         for name in ("train", "val", "test")
     ]
 

@@ -1,4 +1,3 @@
-import random
 from typing import Any, List, Tuple, Dict
 from string import punctuation as PUNCTUATION
 
@@ -10,6 +9,8 @@ from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 
 from torchtext.vocab import FastText
+
+from src.utils import ModelType
 
 
 ### tokenization ###
@@ -28,7 +29,7 @@ def _clean(sentence: str) -> str:
 
 
 def _tokenize(
-    text: str, model_type: str, limit_len: int | None = None
+    text: str, model_type: ModelType, limit_len: int | None = None
 ) -> List[List[str]]:
     nltk.download("punkt")
 
@@ -39,12 +40,12 @@ def _tokenize(
     for sentence in tokenized_sentences:
         assert all([len(word) > 0 for word in sentence]), "empty word found"
 
-        if limit_len is not None or model_type == "NNLM":
+        if limit_len is not None or model_type == ModelType.NNLM:
             if limit_len is None:
                 raise ValueError("limit_len must be provided for NNLM")
             for i in range(len(sentence) - limit_len):
                 tokenized_corpus.append(sentence[i : i + limit_len + 1])
-        elif model_type in ["RNN", "Transformer"]:
+        elif model_type in [ModelType.RNN, ModelType.Transformer]:
             for i in range(2, len(sentence) + 1):
                 tokenized_corpus.append(sentence[:i])
         else:
@@ -54,7 +55,7 @@ def _tokenize(
 
 
 def get_corpus(
-    file_path: str, model_type: str, limit_len: int | None = None
+    file_path: str, model_type: ModelType, limit_len: int | None = None
 ) -> List[List[str]]:
     with open(file_path, "r") as f:
         text = f.read()
@@ -68,8 +69,6 @@ def split_corpus(
     train_ratio: float = 0.7,
     val_ratio: float = 0.2,
 ) -> Tuple[List[List[str]], List[List[str]], List[List[str]]]:
-    random.shuffle(corpus)
-
     train_size, val_size = (
         int(len(corpus) * ratio) for ratio in [train_ratio, val_ratio]
     )
@@ -153,7 +152,7 @@ def get_embeddings(vocab: List[str]) -> torch.Tensor:
 
 
 def get_dataloaders(
-    file_path: str, model_type: str, batch_size: int, limit_len: int | None = None
+    file_path: str, model_type: ModelType, batch_size: int, limit_len: int | None = None
 ) -> Tuple[DataLoader, DataLoader, DataLoader, Dict[str, Any]]:
     UNKNOWN = "unk"
 

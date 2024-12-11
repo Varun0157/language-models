@@ -1,6 +1,6 @@
 - complete refactor
   - [x] separate train and test files
-  - [ ] choose a better name for the perplexity files 
+  - [x] choose a better name for the perplexity files 
 - [x] use some official logger instead of printing 
 - [ ] more documentation in the Readme, type of embeddings etc.
 - [ ] create a main that takes cli args

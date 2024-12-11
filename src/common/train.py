@@ -1,9 +1,8 @@
 import logging
-import os
-import time
 from typing import Any
 
 import torch
+from tqdm import tqdm
 
 from src.models.nnlm import NeuralNetworkLanguageModel
 from src.models.rnn import RecurrentNeuralNetwork
@@ -14,6 +13,7 @@ from src.common.loops import (
     train,
     evaluate,
 )
+from src.utils import ModelType, get_model_path
 
 
 def log_choices(**kwargs) -> None:
@@ -22,8 +22,8 @@ def log_choices(**kwargs) -> None:
 
 
 def train_model(
-    model_type: str,
-    path_dir: str,
+    model_type: ModelType,
+    res_dir: str,
     data_path: str,
     criterion: torch.nn.NLLLoss,
     optim: Any,  # todo: fix this type
@@ -36,7 +36,7 @@ def train_model(
 ) -> None:
     log_choices(
         model_type=model_type,
-        path_dir=path_dir,
+        res_dir=res_dir,
         data_path=data_path,
         criterion=type(criterion),
         optim=optim,
@@ -52,7 +52,10 @@ def train_model(
         data_path, model_type, batch_size, sent_len
     )
     logging.info(
-        f"data prepared: vocab_size {metadata['vocab_size']} emb_dim {metadata['embedding_dim']}"
+        f"data prepared: vocab_size {metadata['vocab_size']}, emb_dim {metadata['embedding_dim']}"
+    )
+    logging.info(
+        f"train size: {len(train_loader.dataset)}, val size: {len(val_loader.dataset)}"  # type: ignore
     )
 
     model_args = {
@@ -62,37 +65,37 @@ def train_model(
         "device": device,
     }
     match model_type:
-        case "NNLM":
+        case "nnlm":
             assert sent_len is not None, "[test_model] limit_len should not be None"
             model_args["sent_len"] = sent_len
             model = NeuralNetworkLanguageModel(**model_args).to(device)
-        case "RNN":
+        case "rnn":
             model = RecurrentNeuralNetwork(**model_args).to(device)
-        case "Transformer":
+        case "transformer":
             model = TransformerModel(**model_args).to(device)
         case _:
             raise ValueError(f"[test_model] model type {model_type} not recognized")
     optim = optim(model.parameters(), lr=lr)
 
     best_val_loss = float("inf")
-    best_model_path = os.path.join(path_dir, f"{model_type}.pth")
+    best_train_loss = float("inf")
+    best_model_path = get_model_path(res_dir, model_type, sent_len)
 
-    logging.info("beginning training")
-    for epoch in range(epochs):
-        start_time = time.time()
-
+    for _ in tqdm(range(epochs), "training model ... "):
         train_loss = train(model, train_loader, optim, criterion, device)
         val_loss = evaluate(model, val_loader, criterion, device)
-
-        elapsed_time = time.time() - start_time
-
-        logging.info(
-            f"epoch: {epoch + 1} -> train loss: {train_loss:.6f}, val loss: {val_loss:.6f}\t time: {elapsed_time:.2f}s"
-        )
 
         if val_loss > best_val_loss:
             continue
 
         best_val_loss = val_loss
+        best_train_loss = train_loss
         torch.save(model.state_dict(), best_model_path)
-        logging.info("\tcurrent model saved!")
+
+    if device == torch.device("cuda"):
+        max_mem_used = torch.cuda.max_memory_allocated() / 1024**2
+        logging.info(f"max memory used: {max_mem_used:.2f} MB")
+
+    logging.info(
+        f"model saved at {best_model_path}: train loss {best_train_loss}, val loss {best_val_loss}"
+    )
