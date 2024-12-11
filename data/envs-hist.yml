@@ -1,14 +1,10 @@
-name: anlp-a1
+name: lm
 channels:
   - conda-forge
   - defaults
 dependencies:
-  - nltk
-  - numpy
-  - python[version='<=3.11']
-  - torchtext
   - pytorch
   - pytorch-cuda=12.4
-  - torchaudio
-  - torchvision
-prefix: /home/varun/miniconda3/envs/anlp-a1
+  - nltk
+  - numpy
+prefix: /home/varun/miniconda3/envs/lm
